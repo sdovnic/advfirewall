@@ -1,7 +1,7 @@
 @echo off
 
-echo %date% %time% %* >> C:\Portable\portable\advfirewall-task.log
+echo %date% %time% %* >> %~dp0\advfirewall-task.log
 
-rem powershell -NoProfile -ExecutionPolicy Bypass -File C:\Portable\portable\advfirewall/advfirewall-notify.ps1 %*
+rem powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 %*
 
 rem msg * /TIME:1 %*
