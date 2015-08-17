@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+	<RegistrationInfo>
+		<Date>2015-08-16T03:36:29</Date>
+		<Author>Rally Vincent</Author>
+		<Description>Windows Firewall Logging</Description>
+		<URI>\advfirewall-log-task</URI>
+	</RegistrationInfo>
+	<Triggers>
+		<EventTrigger>
+			<StartBoundary>2015-08-16T03:36:29</StartBoundary>
+			<Enabled>true</Enabled>
+			<Subscription>&lt;QueryList&gt;&lt;Query&gt;&lt;Select Path='Security'&gt;*[System[(Level=4 or Level=0) and (EventID=5157)]] and *[EventData[Data[@Name='LayerRTID']='48']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+			<ValueQueries>
+			<Value name="Application">Event/EventData/Data[@Name='Application']</Value>
+			<Value name="DestAddress">Event/EventData/Data[@Name='DestAddress']</Value>
+			<Value name="DestPort">Event/EventData/Data[@Name='DestPort']</Value>
+			<Value name="ProcessID">Event/EventData/Data[@Name='ProcessID']</Value>
+			<Value name="Protocol">Event/EventData/Data[@Name='Protocol']</Value>
+			<Value name="SourcePort">Event/EventData/Data[@Name='SourcePort']</Value>
+			<Value name="ThreadID">Event/System/Execution/@ThreadID</Value>
+			</ValueQueries>
+		</EventTrigger>
+	</Triggers>
+	<Principals>
+		<Principal id="Author">
+			<UserId>S-1-5-18</UserId>
+			<RunLevel>HighestAvailable</RunLevel>
+		</Principal>
+	</Principals>
+	<Settings>
+		<MultipleInstancesPolicy>Parallel</MultipleInstancesPolicy>
+		<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+		<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+		<AllowHardTerminate>true</AllowHardTerminate>
+		<StartWhenAvailable>false</StartWhenAvailable>
+		<RunOnlyIfNetworkAvailable>true</RunOnlyIfNetworkAvailable>
+		<IdleSettings>
+			<StopOnIdleEnd>true</StopOnIdleEnd>
+			<RestartOnIdle>false</RestartOnIdle>
+		</IdleSettings>
+		<AllowStartOnDemand>false</AllowStartOnDemand>
+		<Enabled>true</Enabled>
+		<Hidden>false</Hidden>
+		<RunOnlyIfIdle>false</RunOnlyIfIdle>
+		<WakeToRun>false</WakeToRun>
+		<ExecutionTimeLimit>PT72H</ExecutionTimeLimit>
+		<Priority>7</Priority>
+	</Settings>
+	<Actions Context="Author">
+		<Exec>
+			<Command></Command>
+			<Arguments>-pid $(ProcessID) -threadid $(ThreadID) -ip $(DestAddress) -port $(DestPort) -protocol $(Protocol) -localport $(SourcePort) -path "$(Application)"</Arguments>
+		</Exec>
+	</Actions>
+</Task>
