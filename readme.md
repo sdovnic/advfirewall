@@ -1,4 +1,46 @@
-# [Netsh AdvFirewall Firewall Commands](http://technet.microsoft.com/de-de/library/dd734783%28v=ws.10%29.aspx)
+# AdvFirewall Scripts
+
+## Installation
+
+Installation "Senden an Firewall":
+
+    advfirewall-install.vbs
+
+Installation "Firewall Logging":
+
+    advfirewall-log-task-install.cmd
+
+## Regeln ansehen
+
+Einträge in der Firewall:
+
+    %windir%\system32\WF.msc
+
+Log der Regeln:
+
+    notepad %~dp0/advfirewall-rules.Log
+
+## Was hat die Firewall geblockt?
+
+Log der geblockten Verbindungen:
+
+    notepad %~dp0/advfirewall-task.Log
+
+Task anschauen:
+
+    %windir%\system32\taskschd.msc /s
+
+## Deinstallation
+
+Entfernen "Senden an Firewall":
+
+    advfirewall-uninstall.vbs
+
+Entfernen "Firewall Logging":
+
+    advfirewall-log-task-remove.cmd
+
+## [Netsh AdvFirewall Firewall Commands](http://technet.microsoft.com/de-de/library/dd734783%28v=ws.10%29.aspx)
 
 Available Profiles
 
