@@ -1,4 +1,4 @@
-# AdvFirewall Scripts
+﻿# AdvFirewall Scripts
 
 ## Installation
 
@@ -6,7 +6,7 @@ Installation "Senden an Firewall":
 
     advfirewall-install.vbs
 
-Installation "Firewall Logging":
+Installation "Aufgabe zm Aufzeichnen von Firewall Ereignissen":
 
     advfirewall-log-task-install.cmd
 
@@ -16,13 +16,13 @@ Einträge in der Firewall:
 
     %windir%\system32\WF.msc
 
-Log der Regeln:
+Eingetragene Regeln:
 
     notepad %~dp0/advfirewall-rules.Log
 
 ## Was hat die Firewall geblockt?
 
-Log der geblockten Verbindungen:
+Aufzeichnung von geblockten Verbindungen:
 
     notepad %~dp0/advfirewall-task.Log
 
@@ -36,9 +36,13 @@ Entfernen "Senden an Firewall":
 
     advfirewall-uninstall.vbs
 
-Entfernen "Firewall Logging":
+Entfernen "Aufgabe zm Aufzeichnen von Firewall Ereignissen":
 
     advfirewall-log-task-remove.cmd
+
+## Firewall Pausieren
+
+    advfirewall-pause.cmd
 
 ## [Netsh AdvFirewall Firewall Commands](http://technet.microsoft.com/de-de/library/dd734783%28v=ws.10%29.aspx)
 

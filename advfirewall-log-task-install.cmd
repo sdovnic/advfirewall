@@ -24,7 +24,7 @@ if '%errorlevel%' NEQ '0' (
 	pushd "%CD%"
 	CD /D "%~dp0"
 
-powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-log-task-template.ps1 Task Installed
+powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-log-task-template.ps1
 schtasks /Create /TN advfirewall-log-task /XML %~dp0\advfirewall-log-task.xml
 auditpol /set /subcategory:{0CCE9226-69AE-11D9-BED3-505054503030} /failure:enable
-powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Task Installed
+powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Aufgabe zum Aufzeichnen von Firewall Ereignissen eingetragen.

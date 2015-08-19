@@ -28,10 +28,10 @@ if '%errorlevel%' NEQ '0' (
 	pushd "%CD%"
 	CD /D "%~dp0"
 
-echo Fuege ausgehende Regel zur Firewall hinzu
+echo Eingehende Firewall Regel eingetragen.
 netsh advfirewall firewall add rule name="%advfirewallname%" program="%advfirewallprogram%" action=allow dir=in profile=private,public enable=yes
 echo netsh advfirewall firewall add rule name="%advfirewallname%" program="%advfirewallprogram%" action=allow dir=in profile=private,public enable=yes >> advfirewall-rules.log
-echo Entferne Variablen
+echo Entferne Variablen.
 setx advfirewallprogram
 setx advfirewallname
 set advfirewallprogram=

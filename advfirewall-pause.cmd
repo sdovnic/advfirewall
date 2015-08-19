@@ -26,8 +26,8 @@ if '%errorlevel%' NEQ '0' (
 
 netsh advfirewall set privateprofile firewallpolicy allowinbound,allowoutbound
 netsh advfirewall set publicprofile firewallpolicy allowinbound,allowoutbound
-echo The Windows Firewall allows now Inbound and Outbound Traffic! Continue to Restore previous State
+echo Die Windows Firewall wurde angehalten! Fahren Sie fort um den vorherigen Zustand wieder herzustellen.
 pause
 netsh advfirewall set privateprofile firewallpolicy blockinbound,blockoutbound
 netsh advfirewall set publicprofile firewallpolicy blockinbound,blockoutbound
-powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Firewall Restored
+powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Firewall wieder hergestellt.

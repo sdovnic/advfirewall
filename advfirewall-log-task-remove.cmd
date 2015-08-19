@@ -26,4 +26,4 @@ if '%errorlevel%' NEQ '0' (
 
 schtasks /Delete /TN advfirewall-log-task /F
 auditpol /set /subcategory:{0CCE9226-69AE-11D9-BED3-505054503030} /failure:disable
-powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Task Removed
+powershell -NoProfile -ExecutionPolicy Bypass -File %~dp0/advfirewall-notify.ps1 Aufgabe zum Aufzeichnen von Firewall Ereignissen ausgetragen.
