@@ -88,6 +88,10 @@ Allow the Windows Update Service:
 
     netsh advfirewall firewall add rule name="Windows Update Service" service="wuauserv" dir=out action=allow profile=private enable=yes
 
+Windows Update on Windows 10:
+
+    netsh advfirewall firewall add rule name="Windows Update" program="%systemroot%\system32\svchost.exe" remoteport=443 protocol=TCP remoteip=157.55.240.220,157.56.96.54,65.55.163.222,191.234.72.183,191.234.72.188,191.234.72.186 dir=out action=allow profile=private,public enable=yes
+
 Disable Teredo IPv6 Tunneling:
 
     netsh interface teredo set state disabled

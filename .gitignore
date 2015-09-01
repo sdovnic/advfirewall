@@ -1,3 +1,2 @@
 advfirewall-log-task.xml
-advfirewall-rules.log
-advfirewall-task.log
+*.log
