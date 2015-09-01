@@ -1,1 +1,0 @@
-(Get-Content "$PSScriptRoot\advfirewall-log-task-template.xml") | ForEach-Object { $_ -replace "<Command></Command>", "<Command>$PSScriptRoot\advfirewall-log-task.cmd</Command>" } | Set-Content "$PSScriptRoot\advfirewall-log-task.xml"

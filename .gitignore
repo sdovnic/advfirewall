@@ -1,2 +1,5 @@
-advfirewall-log-task.xml
 *.log
+*.xml
+*.zip
+notes.txt
+contrib/

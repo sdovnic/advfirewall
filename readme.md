@@ -1,48 +1,60 @@
-﻿# AdvFirewall Scripts
+# AdvFirewall Scripts
+
+A Collection of Scripts to Manage your Advanced Windows Firewall.
+
+## Description
+
+Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Windows Firewall Event Logging to simple Text Logfile. You will find the Log Files in your Script Directory. You can even restore your custom Firewall Rules when running the Rules Logfile as a Command Script. From your StartMenu you can pause the Firewall.
 
 ## Installation
 
-Installation "Senden an Firewall":
+Extract the Archive and put the Folder to your desired Location.
 
-    advfirewall-install.vbs
+Run the Install Scripts depending on what you want to be installed.
 
-Installation "Aufgabe zm Aufzeichnen von Firewall Ereignissen":
+### Windows Firewall SendTo Shortcuts
 
-    advfirewall-log-task-install.cmd
+If the ExecutionPolicy from PowerShell is Restricted run:
 
-## Regeln ansehen
+    install.cmd
 
-Einträge in der Firewall:
+With PowerShell and configured ExecutionPolicy run:
 
-    %windir%\system32\WF.msc
+    advfirewall-installer.ps1
 
-Eingetragene Regeln:
+### Windows Firewall Event Logging
 
-    notepad %~dp0/advfirewall-rules.Log
+If the ExecutionPolicy from PowerShell is Restricted run:
 
-## Was hat die Firewall geblockt?
+    install-logger.cmd
 
-Aufzeichnung von geblockten Verbindungen:
+With PowerShell and configured ExecutionPolicy run:
 
-    notepad %~dp0/advfirewall-task.Log
-
-Task anschauen:
-
-    %windir%\system32\taskschd.msc /s
+    advfirewall-installer.ps1 logger
 
 ## Deinstallation
 
-Entfernen "Senden an Firewall":
+Run the Removal Scripts depending on what you have installed.
 
-    advfirewall-uninstall.vbs
+### Windows Firewall SendTo Shortcuts
 
-Entfernen "Aufgabe zm Aufzeichnen von Firewall Ereignissen":
+If the ExecutionPolicy from PowerShell is Restricted run:
 
-    advfirewall-log-task-remove.cmd
+    remove.cmd
 
-## Firewall Pausieren
+With PowerShell and configured ExecutionPolicy run:
 
-    advfirewall-pause.cmd
+    advfirewall-installer.ps1 remove
+
+### Windows Firewall Event Logging
+
+If the ExecutionPolicy from PowerShell is Restricted run:
+
+    remove-logger.cmd
+
+With PowerShell and configured ExecutionPolicy run:
+
+    advfirewall-installer.ps1 remove logger
 
 ## [Netsh AdvFirewall Firewall Commands](http://technet.microsoft.com/de-de/library/dd734783%28v=ws.10%29.aspx)
 
