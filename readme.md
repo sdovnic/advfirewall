@@ -4,7 +4,7 @@ A Collection of Scripts to Manage your Advanced Windows Firewall.
 
 ## Description
 
-Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Windows Firewall Event Logging to simple Text Logfile. You will find the Log Files in your Script Directory. You can even restore your custom Firewall Rules when running the Rules Logfile as a Command Script. From your StartMenu you can pause the Firewall.
+Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Windows Firewall Event Logging to simple Text Logfile. You will find the Log Files in your Script Directory. You can even restore your custom Firewall Rules when running the Rules Logfile as a Command Script. From your StartMenu you can pause the Firewall and view the logged Firewall Events.
 
 ## Installation
 

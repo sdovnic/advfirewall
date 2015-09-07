@@ -142,6 +142,11 @@ If ($args.Length -gt 0) {
                 Remove-Item -Path $TaskFile
             }
         }
+        Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Ereignisse.lnk") `
+                     -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
+                     -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
+                     -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
+                     -Description "Zeigt die aufgezeichneten Ereignisse der Windows Firewall an."
         Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging installiert." `
                      -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } ElseIf ($args[0].Contains("remove")) {
@@ -161,6 +166,7 @@ If ($args.Length -gt 0) {
                         Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
                     }
                 }
+                Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Ereignisse.lnk")
                 Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging entfernt." `
                              -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
             }
@@ -190,7 +196,7 @@ If ($args.Length -gt 0) {
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSCommandPath -WindowStyle 7 `
-                 -Description "Schaltet vorubergehend die Windows Firewall aus."
+                 -Description "Schaltet vorübergehend die Windows Firewall aus."
     Show-Balloon -TipTitle "Windows Firewall" -TipText "Senden an Windows Firewall installiert." `
                  -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
 }
