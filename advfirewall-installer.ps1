@@ -15,10 +15,15 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     }
 }
 Function Show-Balloon {
-    param([string] $TipTitle, [string] $TipText, [string] $TipIcon, [string] $Icon)
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+    Param(
+        [Parameter(Mandatory=$true)] [String] $TipTitle,
+        [Parameter(Mandatory=$true)] [String] $TipText,
+        [Parameter(Mandatory=$false)] [ValidateSet("Info", "Error", "Warning")] [String] $TipIcon,
+        [String] $Icon
+    )
+    [Void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
     $FormsNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
-    If (-not $Icon) { $Icon = (Join-Path -Path $PSROOT -ChildPath "powershell.exe"); }
+    If (-not $Icon) { $Icon = (Join-Path -Path $PSHOME -ChildPath "powershell.exe"); }
     $DrawingIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Icon)
     $FormsNotifyIcon.Icon = $DrawingIcon
     If (-not $TipIcon) { $TipIcon = "Info"; }
@@ -31,22 +36,37 @@ Function Show-Balloon {
     $FormsNotifyIcon.Dispose()
 }
 Function Add-ShortCut {
-    param([string] $Link, [string] $TargetPath, [string] $Arguments, [string] $IconLocation, [string] $WorkingDirectory, [int] $WindowStyle, [string] $Description)
-	If (Test-Path $TargetPath) {
-	    $WShell = New-Object -ComObject WScript.Shell
-	    $Shortcut = $WShell.CreateShortcut($Link)
-	    $Shortcut.TargetPath = $TargetPath
-		If ($Arguments) { $Shortcut.Arguments = $Arguments; }
-		If ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
-		If ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
-		If ($WindowStyle) { $Shortcut.WindowStyle = $WindowStyle; }
-		If ($Description) { $Shortcut.Description = $Description; }
-	    $Shortcut.Save()
-	}
+    Param(
+        [Parameter(Mandatory=$true)] [String] $Link,
+        [Parameter(Mandatory=$true)] [String] $TargetPath,
+        [String] $Arguments,
+        [String] $IconLocation,
+        [String] $WorkingDirectory,
+        [String] $Description,
+        [Parameter(Mandatory=$false)] [ValidateSet("Normal", "Minimized", "Maximized")] [String] $WindowStyle
+    )
+    If (Test-Path -Path $TargetPath) {
+        $WShell = New-Object -ComObject WScript.Shell
+        $Shortcut = $WShell.CreateShortcut($Link)
+        $Shortcut.TargetPath = $TargetPath
+        If ($Arguments) { $Shortcut.Arguments = $Arguments; }
+        If ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
+        If ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
+        If ($WindowStyle) {
+            Switch ($WindowStyle) {
+                "Normal" { [Int] $WindowStyle = 4 };
+                "Minimized" { [Int] $WindowStyle = 7 };
+                "Maximized" { [Int] $WindowStyle = 3 };
+            }
+            $Shortcut.WindowStyle = $WindowStyle;
+        }
+        If ($Description) { $Shortcut.Description = $Description; }
+        $Shortcut.Save()
+    }
 }
 Function Remove-Shortcut {
-    param([string] $Link)
-    If (Test-Path $Link) { Remove-Item $Link; }
+    Param([Parameter(Mandatory=$true)] [String] $Link)
+    If (Test-Path -Path $Link) { Remove-Item $Link; }
 }
 If ($args.Length -gt 0) {
     [string] $TaskName = "advfirewall-log-event"
@@ -183,19 +203,19 @@ If ($args.Length -gt 0) {
                  -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle 7 `
+                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
                  -Description "Trägt eine Ausgehende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle 7 `
+                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
                  -Description "Trägt eine Einghende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle 7 `
+                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
                  -Description "Schaltet vorübergehend die Windows Firewall aus."
     Show-Balloon -TipTitle "Windows Firewall" -TipText "Senden an Windows Firewall installiert." `
                  -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"

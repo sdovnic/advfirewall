@@ -4,10 +4,15 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     return
 }
 Function Show-Balloon {
-    param([string] $TipTitle, [string] $TipText, [string] $TipIcon, [string] $Icon)
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+    Param(
+        [Parameter(Mandatory=$true)] [String] $TipTitle,
+        [Parameter(Mandatory=$true)] [String] $TipText,
+        [Parameter(Mandatory=$false)] [ValidateSet("Info", "Error", "Warning")] [String] $TipIcon,
+        [String] $Icon
+    )
+    [Void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
     $FormsNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
-    If (-not $Icon) { $Icon = (Join-Path -Path $PSROOT -ChildPath "powershell.exe"); }
+    If (-not $Icon) { $Icon = (Join-Path -Path $PSHOME -ChildPath "powershell.exe"); }
     $DrawingIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Icon)
     $FormsNotifyIcon.Icon = $DrawingIcon
     If (-not $TipIcon) { $TipIcon = "Info"; }
@@ -16,7 +21,7 @@ Function Show-Balloon {
     $FormsNotifyIcon.BalloonTipText = $TipText
     $FormsNotifyIcon.Visible = $True
     $FormsNotifyIcon.ShowBalloonTip(5000)
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds 5000
     $FormsNotifyIcon.Dispose()
 }
 If (Get-Command -Name Get-NetFirewallRule -ErrorAction SilentlyContinue) {
@@ -27,7 +32,7 @@ If (Get-Command -Name Get-NetFirewallRule -ErrorAction SilentlyContinue) {
     Write-Warning "Get-NetFirewallRule not supported."
     Start-Process "netsh" -ArgumentList ("advfirewall", "set", "allprofiles", "firewallpolicy", "allowinbound,allowoutbound") -WindowStyle Hidden -Wait
 }
-[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
+[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 $Result = [System.Windows.Forms.MessageBox]::Show(
     "Achtung! Die Windows Firewall wurde angehalten, wählen Sie OK um den vorherigen Zustand wieder herzustellen.",
     "Windows Firewall", 0, [System.Windows.Forms.MessageBoxIcon]::Error
