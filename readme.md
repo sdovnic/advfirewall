@@ -105,11 +105,23 @@ Delete Rule:
 
 Allow SSH Traffic for all Programs:
 
-    netsh advfirewall firewall add rule name="SSH" dir=out action=allow protocol=TCP remoteport=22 profile=private enable=yes
+    netsh advfirewall firewall add rule name="SSH" dir=out action=allow protocol=TCP remoteport=22 profile=any enable=yes
 
 Allow Network-Printing:
 
-    netsh advfirewall firewall add rule name="TCP 9100 192.168.0.0/24" dir=out action=allow protocol=TCP remoteport=9100 remoteip=192.168.0.0/24 profile=private enable=yes
+    netsh advfirewall firewall add rule name="Advanced TCP/IP Printer Port" dir=out action=allow protocol=TCP remoteport=9100 remoteip=localsubnet profile=any enable=yes
+
+Allow ICMPv4 Traffic (Ping):
+
+    netsh advfirewall firewall add rule name="ICMPv4" dir=out action=allow protocol=ICMPv4 profile=any enable=yes
+
+Allow NetBIOS Traffic in LocalSubNet:
+
+    netsh advfirewall firewall add rule name="NetBIOS" dir=out action=allow protocol=UDP remoteport=137 remoteip=localsubnet profile=any enable=yes
+
+Allow Network Time Protocol Traffic:
+
+    netsh advfirewall firewall add rule name="W32Time" service="W32Time" dir=out action=allow profile=any enable=yes
 
 Allow the Windows Update Service:
 
@@ -117,7 +129,7 @@ Allow the Windows Update Service:
 
 Windows Update on Windows 10:
 
-    netsh advfirewall firewall add rule name="Windows Update" program="%systemroot%\system32\svchost.exe" remoteport=443 protocol=TCP remoteip=157.55.240.220,157.56.96.54,65.55.163.222,191.234.72.183,191.234.72.188,191.234.72.186 dir=out action=allow profile=private,public enable=yes
+    netsh advfirewall firewall add rule name="Windows Update" program="%systemroot%\system32\svchost.exe" remoteport=443 protocol=TCP remoteip=157.55.240.220,157.56.96.54,65.55.163.222,191.234.72.183,191.234.72.188,191.234.72.186,191.232.80.60,131.253.61.68,131.253.61.80,131.253.61.82,131.253.61.84,131.253.61.98,134.170.115.62,64.4.54.117,157.56.96.123,157.55.133.204,65.55.138.111,191.232.139.2,64.4.54.18 dir=out action=allow profile=private,public enable=yes
 
 Disable Teredo IPv6 Tunneling:
 
