@@ -6,6 +6,21 @@ A Collection of Scripts to Manage your Advanced Windows Firewall.
 
 Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Windows Firewall Event Logging to simple Text Logfile. You will find the Log Files in your Script Directory. You can even restore your custom Firewall Rules when running the Rules Logfile as a Command Script. From your StartMenu you can pause the Firewall and view the logged Firewall Events.
 
+## Requirements
+
+* Windows Operating System
+* Elevated Command Prompt (Only for the Event Logger)
+
+## Supported Operating Systems
+
+* Windows 7
+* Windows 8
+* Windows 8.1
+* Windows 10
+* Windows Server 2012
+* Windows Server 2012 R2
+* Windows Server 2016 Technical Preview
+
 ## Installation
 
 Extract the Archive and put the Folder to your desired Location.
