@@ -1,3 +1,9 @@
+If ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+}
+If ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $PSCommandPath = $MyInvocation.MyCommand.Definition
+}
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Start-Process powershell -WindowStyle Hidden -WorkingDirectory $PSScriptRoot -Verb runAs `
                              -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File $PSCommandPath $args"

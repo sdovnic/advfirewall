@@ -1,11 +1,19 @@
+Set-PSDebug -Strict
+If ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+}
+If ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $PSCommandPath = $MyInvocation.MyCommand.Definition
+}
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    [Boolean] $Elevate = $false
     If ($args.Length -gt 1) {
         If ($args[1].Contains("logger")) {
-            $Elevate = $True
+            $Elevate = $true
         }
     } ElseIf ($args.Length -gt 0) {
         If ($args[0].Contains("logger")) {
-            $Elevate = $True
+            $Elevate = $true
         }
     }
     If ($Elevate) {
@@ -54,11 +62,11 @@ Function Add-ShortCut {
         If ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
         If ($WindowStyle) {
             Switch ($WindowStyle) {
-                "Normal" { [Int] $WindowStyle = 4 };
-                "Minimized" { [Int] $WindowStyle = 7 };
-                "Maximized" { [Int] $WindowStyle = 3 };
+                "Normal" { [Int] $WindowStyleNumerate = 4 };
+                "Minimized" { [Int] $WindowStyleNumerate = 7 };
+                "Maximized" { [Int] $WindowStyleNumerate = 3 };
             }
-            $Shortcut.WindowStyle = $WindowStyle;
+            $Shortcut.WindowStyle = $WindowStyleNumerate;
         }
         If ($Description) { $Shortcut.Description = $Description; }
         $Shortcut.Save()
@@ -203,19 +211,19 @@ If ($args.Length -gt 0) {
                  -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
+                 -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
                  -Description "Trägt eine Ausgehende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
+                 -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
                  -Description "Trägt eine Einghende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
-                 -WorkingDirectory $PSCommandPath -WindowStyle Minimized `
+                 -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
                  -Description "Schaltet vorübergehend die Windows Firewall aus."
     Show-Balloon -TipTitle "Windows Firewall" -TipText "Senden an Windows Firewall installiert." `
                  -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"

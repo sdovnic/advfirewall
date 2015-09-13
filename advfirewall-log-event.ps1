@@ -1,3 +1,6 @@
+If ($PSVersionTable.PSVersion.Major -lt 3) {
+    [String] $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+}
 [String] $LogEntry = "$args"
 [Int] $ProcessID = [regex]::Match($LogEntry, '\-pid\ (\d+)\ ').Groups[1].Value
 [String] $Services = Get-WmiObject Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | select -ExpandProperty Name
