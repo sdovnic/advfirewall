@@ -136,11 +136,11 @@ namespace Utils
 }
 '@
         Add-Type -TypeDefinition $WaitHelperSource
-        $FirewallLog | Out-GridView -Title "Windows Firewall Ereignisprotokoll"
-        $WaitHelper = new-object Utils.WindowHelper 
+        $FirewallLog | Sort-Object -Property Datum, Uhrzeit -Descending | Out-GridView -Title "Windows Firewall Ereignisprotokoll"
+        $WaitHelper = New-Object Utils.WindowHelper 
         $WaitHelper.WaitForOutGridViewWindowToClose()
     } Else {
-        $FirewallLog | Out-GridView -Title "Windows Firewall Ereignisprotokoll" -Wait
+        $FirewallLog | Sort-Object -Property Datum, Uhrzeit -Descending | Out-GridView -Title "Windows Firewall Ereignisprotokoll" -Wait
     }
 } Else {
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
