@@ -169,7 +169,13 @@ If ($args.Length -gt 0) {
                 Remove-Item -Path $TaskFile
             }
         }
-        Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Ereignisse.lnk") `
+        $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
+        if (-not ($env:USERNAME -eq $Username)) {
+            $Path = [Environment]::GetFolderPath("StartMenu") -replace $env:USERNAME, $Username
+        } else {
+            $Path = [Environment]::GetFolderPath("StartMenu")
+        }
+        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath "Windows Firewall Ereignisse.lnk") `
                      -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
                      -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
                      -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
@@ -198,7 +204,13 @@ If ($args.Length -gt 0) {
                         Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
                     }
                 }
-                Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Ereignisse.lnk")
+                $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
+                if (-not ($env:USERNAME -eq $Username)) {
+                    $Path = [Environment]::GetFolderPath("StartMenu") -replace $env:USERNAME, $Username
+                } else {
+                    $Path = [Environment]::GetFolderPath("StartMenu")
+                }
+                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath "Windows Firewall Ereignisse.lnk")
                 Add-Type -AssemblyName System.Windows.Forms
                 $Result = [System.Windows.Forms.MessageBox]::Show(
                     "Windows Firewall Event Logging entfernt.", "Windows Firewall", 0,
