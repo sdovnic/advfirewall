@@ -76,7 +76,7 @@ If ($args.Length -gt 1) {
             }
             [string] $TipIcon = "Error"
         } Else {
-            Start-Process "netsh" -ArgumentList $ArgumentList -WindowStyle Hidden`
+            Start-Process "netsh" -ArgumentList $ArgumentList -WindowStyle Hidden
             Add-Content -Path $LogFile -Value $LogEntry
         }
     }
