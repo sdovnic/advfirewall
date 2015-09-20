@@ -238,13 +238,13 @@ If ($args.Length -gt 0) {
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Trögt eine Ausgehende Regel in die Windows Firewall ein."
+                 -Description "Trägt eine Ausgehende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Trögt eine Einghende Regel in die Windows Firewall ein."
+                 -Description "Trägt eine Einghende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
