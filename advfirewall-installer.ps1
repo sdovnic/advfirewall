@@ -1,85 +1,89 @@
-If ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
-If ($PSVersionTable.PSVersion.Major -lt 3) {
-    [String] $PSCommandPath = $MyInvocation.MyCommand.Definition
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
-If (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    [Boolean] $Elevate = $false
-    If ($args.Length -gt 1) {
-        If ($args[1].Contains("logger")) {
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    [bool] $Elevate = $false
+    if ($args.Length -gt 1) {
+        if ($args[1].Contains("logger")) {
             $Elevate = $true
         }
-    } ElseIf ($args.Length -gt 0) {
-        If ($args[0].Contains("logger")) {
+    } elseif ($args.Length -gt 0) {
+        if ($args[0].Contains("logger")) {
             $Elevate = $true
         }
     }
-    If ($Elevate) {
-        Start-Process powershell -WindowStyle Hidden -WorkingDirectory $PSScriptRoot -Verb runAs `
-                                 -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File $PSCommandPath $args"
+    if ($Elevate) {
+        Start-Process -FilePath "powershell" -WindowStyle Hidden -WorkingDirectory $PSScriptRoot -Verb runAs `
+                      -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File $PSCommandPath $args"
         return
     }
 }
-Function Show-Balloon {
-    Param(
-        [Parameter(Mandatory=$true)] [String] $TipTitle,
-        [Parameter(Mandatory=$true)] [String] $TipText,
-        [Parameter(Mandatory=$false)] [ValidateSet("Info", "Error", "Warning")] [String] $TipIcon,
-        [String] $Icon
+function Show-Balloon {
+    param(
+        [parameter(Mandatory=$true)] [string] $TipTitle,
+        [parameter(Mandatory=$true)] [string] $TipText,
+        [parameter(Mandatory=$false)] [ValidateSet("Info", "Error", "Warning")] [string] $TipIcon,
+        [string] $Icon
     )
-    [Void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-    $FormsNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
-    If (-not $Icon) { $Icon = (Join-Path -Path $PSHOME -ChildPath "powershell.exe"); }
-    $DrawingIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Icon)
-    $FormsNotifyIcon.Icon = $DrawingIcon
-    If (-not $TipIcon) { $TipIcon = "Info"; }
-    $FormsNotifyIcon.BalloonTipIcon = $TipIcon;
-    $FormsNotifyIcon.BalloonTipTitle = $TipTitle
-    $FormsNotifyIcon.BalloonTipText = $TipText
-    $FormsNotifyIcon.Visible = $True
-    $FormsNotifyIcon.ShowBalloonTip(5000)
-    Start-Sleep -Milliseconds 5000
-    $FormsNotifyIcon.Dispose()
-}
-Function Add-ShortCut {
-    Param(
-        [Parameter(Mandatory=$true)] [String] $Link,
-        [Parameter(Mandatory=$true)] [String] $TargetPath,
-        [String] $Arguments,
-        [String] $IconLocation,
-        [String] $WorkingDirectory,
-        [String] $Description,
-        [Parameter(Mandatory=$false)] [ValidateSet("Normal", "Minimized", "Maximized")] [String] $WindowStyle
-    )
-    If (Test-Path -Path $TargetPath) {
-        $WShell = New-Object -ComObject WScript.Shell
-        $Shortcut = $WShell.CreateShortcut($Link)
-        $Shortcut.TargetPath = $TargetPath
-        If ($Arguments) { $Shortcut.Arguments = $Arguments; }
-        If ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
-        If ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
-        If ($WindowStyle) {
-            Switch ($WindowStyle) {
-                "Normal" { [Int] $WindowStyleNumerate = 4 };
-                "Minimized" { [Int] $WindowStyleNumerate = 7 };
-                "Maximized" { [Int] $WindowStyleNumerate = 3 };
-            }
-            $Shortcut.WindowStyle = $WindowStyleNumerate;
-        }
-        If ($Description) { $Shortcut.Description = $Description; }
-        $Shortcut.Save()
+    process {
+        [Void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+        $FormsNotifyIcon = New-Object -TypeName System.Windows.Forms.NotifyIcon
+        if (-not $Icon) { $Icon = (Join-Path -Path $PSHOME -ChildPath "powershell.exe"); }
+        $DrawingIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Icon)
+        $FormsNotifyIcon.Icon = $DrawingIcon
+        if (-not $TipIcon) { $TipIcon = "Info"; }
+        $FormsNotifyIcon.BalloonTipIcon = $TipIcon;
+        $FormsNotifyIcon.BalloonTipTitle = $TipTitle
+        $FormsNotifyIcon.BalloonTipText = $TipText
+        $FormsNotifyIcon.Visible = $True
+        $FormsNotifyIcon.ShowBalloonTip(5000)
+        Start-Sleep -Milliseconds 5000
+        $FormsNotifyIcon.Dispose()
     }
 }
-Function Remove-Shortcut {
-    Param([Parameter(Mandatory=$true)] [String] $Link)
-    If (Test-Path -Path $Link) { Remove-Item $Link; }
+function Add-ShortCut {
+    param(
+        [parameter(Mandatory=$true)] [string] $Link,
+        [parameter(Mandatory=$true)] [string] $TargetPath,
+        [string] $Arguments,
+        [string] $IconLocation,
+        [string] $WorkingDirectory,
+        [string] $Description,
+        [parameter(Mandatory=$false)] [ValidateSet("Normal", "Minimized", "Maximized")] [string] $WindowStyle
+    )
+    process {
+        if (Test-Path -Path $TargetPath) {
+            $WShell = New-Object -ComObject WScript.Shell
+            $Shortcut = $WShell.CreateShortcut($Link)
+            $Shortcut.TargetPath = $TargetPath
+            if ($Arguments) { $Shortcut.Arguments = $Arguments; }
+            if ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
+            if ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
+            if ($WindowStyle) {
+                switch ($WindowStyle) {
+                    "Normal" { [Int] $WindowStyleNumerate = 4 };
+                    "Minimized" { [Int] $WindowStyleNumerate = 7 };
+                    "Maximized" { [Int] $WindowStyleNumerate = 3 };
+                }
+                $Shortcut.WindowStyle = $WindowStyleNumerate;
+            }
+            if ($Description) { $Shortcut.Description = $Description; }
+            $Shortcut.Save()
+        }
+    }
 }
-If ($args.Length -gt 0) {
+function Remove-Shortcut {
+    param([parameter(Mandatory=$true)] [string] $Link)
+    if (Test-Path -Path $Link) { Remove-Item -Path $Link; }
+}
+if ($args.Length -gt 0) {
     [string] $TaskName = "advfirewall-log-event"
     [string] $TaskScript = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-log-event.ps1")
     [string] $LogFile = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.log")
-    [string] $TaskDescription = "Zeichnet Windows Firewall Ereignisse auf, benötigt $TaskScript und schreibt in die Datei $LogFile."
+    [string] $TaskDescription = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt $TaskScript und schreibt in die Datei $LogFile."
     [string] $TaskCommand = (Join-Path -Path $PSHOME -ChildPath "powershell.exe")
     [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$TaskScript`" -pid `$(ProcessID) -threadid `$(ThreadID) -ip `$(DestAddress) -port `$(DestPort) -protocol `$(Protocol) -localport `$(SourcePort) -path `"`$(Application)`""
     [string] $TaskFile = (Join-Path -Path $PSScriptRoot -ChildPath "$TaskName.xml")
@@ -139,33 +143,33 @@ If ($args.Length -gt 0) {
 		</Exec>
 	</Actions>
 </Task>"
-    If ($args[0].Contains("logger")) {
-        If (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
-            If (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
-                Write-Warning "Task already exist!"
-            } Else {
+    if ($args[0].Contains("logger")) {
+        if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
+            if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
+                Write-Warning -Message "Task already exist!"
+            } else {
                 $TaskTemplate = $TaskTemplate -replace "<Description>(.*)</Description>", "<Description>$TaskDescription</Description>"
                 $TaskTemplate = $TaskTemplate -replace "<URI>(.*)</URI>", "<URI>\$TaskName</URI>"
                 $TaskTemplate = $TaskTemplate -replace "<Command>(.*)</Command>", "<Command>$TaskCommand</Command>"
                 $TaskTemplate = $TaskTemplate -replace "<Arguments>(.*)</Arguments>", "<Arguments>$TaskArguments</Arguments>"
                 Set-Content -Path $TaskFile -Value $TaskTemplate
-                Start-Process "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
-                Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
+                Start-Process -FilePath "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
+                Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
                 Remove-Item -Path $TaskFile
             }
-        } Else {
-            Write-Warning "Get-ScheduledTask not supported."
+        } else {
+            Write-Warning -Message "Get-ScheduledTask not supported, using Schtasks."
             $Query = schtasks /Query /TN "\$TaskName" | Out-String
-            If ($Query.Contains($TaskName)) {
-                Write-Warning "Task already exist!"
-            } Else {
+            if ($Query.Contains($TaskName)) {
+                Write-Warning -Message "Task already exist!"
+            } else {
                 $TaskTemplate = $TaskTemplate -replace "<Description>(.*)</Description>", "<Description>$TaskDescription</Description>"
                 $TaskTemplate = $TaskTemplate -replace "<URI>(.*)</URI>", "<URI>\$TaskName</URI>"
                 $TaskTemplate = $TaskTemplate -replace "<Command>(.*)</Command>", "<Command>$TaskCommand</Command>"
                 $TaskTemplate = $TaskTemplate -replace "<Arguments>(.*)</Arguments>", "<Arguments>$TaskArguments</Arguments>"
                 Set-Content -Path $TaskFile -Value $TaskTemplate
-                Start-Process "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
-                Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
+                Start-Process -FilePath "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
+                Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
                 Remove-Item -Path $TaskFile
             }
         }
@@ -187,21 +191,21 @@ If ($args.Length -gt 0) {
         )
         Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging installiert." `
                      -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
-    } ElseIf ($args[0].Contains("remove")) {
-        If ($args.Length -gt 1) {
-            If ($args[1].Contains("logger")) {
-                If (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
-                    If (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
+    } elseif ($args[0].Contains("remove")) {
+        if ($args.Length -gt 1) {
+            if ($args[1].Contains("logger")) {
+                if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
+                    if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
                         Unregister-ScheduledTask -TaskName $TaskName -TaskPath "\" -Confirm:$False
-                        Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
+                        Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
                     }
-                } Else {
-                    Write-Warning "Get-ScheduledTask not supported."
+                } else {
+                    Write-Warning -Message "Get-ScheduledTask not supported, using Schtasks."
                     $Query = schtasks /Query /TN "\$TaskName" | Out-String
-                    If ($Query.Contains($TaskName)) {
+                    if ($Query.Contains($TaskName)) {
                         [array] $ArgumentList = @("/Delete", "/TN `"\$TaskName`"", "/F")
-                        Start-Process "schtasks" -ArgumentList $ArgumentList -WindowStyle Hidden
-                        Start-Process "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
+                        Start-Process -FilePath "schtasks" -ArgumentList $ArgumentList -WindowStyle Hidden
+                        Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
                     }
                 }
                 $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
@@ -219,7 +223,7 @@ If ($args.Length -gt 0) {
                 Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging entfernt." `
                              -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
             }
-        } Else {
+        } else {
             Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Ausgehende Regel eintragen.lnk")
             Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk")
             Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk")
@@ -232,25 +236,25 @@ If ($args.Length -gt 0) {
                          -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
         }
     }
-} Else {
+} else {
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Ausgehende Regel eintragen.lnk") `
                  -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Trägt eine Ausgehende Regel in die Windows Firewall ein."
+                 -Description "Tr$([char]0x00E4)gt eine Ausgehende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Trägt eine Einghende Regel in die Windows Firewall ein."
+                 -Description "Tr$([char]0x00E4)gt eine Einghende Regel in die Windows Firewall ein."
     Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk") `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Schaltet vorübergehend die Windows Firewall aus."
+                 -Description "Schaltet vor$([char]0x00FC)bergehend die Windows Firewall aus."
     Add-Type -AssemblyName System.Windows.Forms
     $Result = [System.Windows.Forms.MessageBox]::Show(
         "Senden an Windows Firewall installiert.", "Windows Firewall", 0,
