@@ -26,4 +26,16 @@ $Event = @{
     Protocol = $Protocol
     Services = [string] (Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 }
-Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject (New-Object -TypeName PsObject -Property $Event)
+if ($PSVersionTable.PSVersion.Major -gt 2) {
+    Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject (New-Object -TypeName PsObject -Property $Event)
+} else {
+    if (-not (Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv"))) {
+        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") -InputObject (New-Object -TypeName PsObject -Property $Event)
+        $Data = Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv")
+    } else {
+        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") -NoTypeInformation -InputObject (New-Object -TypeName PsObject -Property $Event)
+        $Data = Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") | Select-Object -Last 1
+    }
+    Out-File -FilePath (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject $Data
+    Remove-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv")
+}
