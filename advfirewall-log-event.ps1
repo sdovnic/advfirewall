@@ -1,13 +1,29 @@
+param(
+    [string] $SystemTime,
+    [string] $ThreadID,
+    [string] $ProcessID,
+    $Application,
+    [string] $Direction,
+    [string] $SourceAddress,
+    [string] $SourcePort,
+    [string] $DestAddress,
+    [string] $DestPort,
+    [string] $Protocol
+)
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
-[string] $LogEntry = "$args"
-[int] $ProcessID = [RegEx]::Match($LogEntry, '\-pid\ (\d+)\ ').Groups[1].Value
-[string] $Services = Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
-if ($Services) {
-    [string] $Value = (Get-Date -Format "dd.MM.yyy HH:mm:ss") + " " + $LogEntry + " -services " + $Services
-} else {
-    [string] $Value = (Get-Date -Format "dd.MM.yyy HH:mm:ss") + " " + $LogEntry
+$Event = @{
+    SystemTime = $SystemTime
+    ThreadID = [int] $ThreadID
+    ProcessID = [int] $ProcessID
+    Application = [string] "$Application"
+    Direction = $Direction
+    SourceAddress = $SourceAddress
+    SourcePort = $SourcePort
+    DestAddress = $DestAddress
+    DestPort = $DestPort
+    Protocol = $Protocol
+    Services = [string] (Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 }
-[string] $LogFile = Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.log"
-Add-Content -Path $LogFile -Value $Value
+Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject (New-Object -TypeName PsObject -Property $Event)
