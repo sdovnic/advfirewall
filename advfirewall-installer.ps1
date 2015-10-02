@@ -64,9 +64,9 @@ function Add-ShortCut {
             if ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
             if ($WindowStyle) {
                 switch ($WindowStyle) {
-                    "Normal" { [Int] $WindowStyleNumerate = 4 };
-                    "Minimized" { [Int] $WindowStyleNumerate = 7 };
-                    "Maximized" { [Int] $WindowStyleNumerate = 3 };
+                    "Normal" { [int] $WindowStyleNumerate = 4 };
+                    "Minimized" { [int] $WindowStyleNumerate = 7 };
+                    "Maximized" { [int] $WindowStyleNumerate = 3 };
                 }
                 $Shortcut.WindowStyle = $WindowStyleNumerate;
             }
@@ -82,18 +82,19 @@ function Remove-Shortcut {
 if ($args.Length -gt 0) {
     [string] $TaskName = "advfirewall-log-event"
     [string] $TaskScript = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-log-event.ps1")
-    [string] $LogFile = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.log")
+    [string] $LogFile = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv")
     [string] $TaskDescription = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt $TaskScript und schreibt in die Datei $LogFile."
     [string] $TaskCommand = (Join-Path -Path $PSHOME -ChildPath "powershell.exe")
-    [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$TaskScript`" -pid `$(ProcessID) -threadid `$(ThreadID) -ip `$(DestAddress) -port `$(DestPort) -protocol `$(Protocol) -localport `$(SourcePort) -path `"`$(Application)`""
+    [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass `"$TaskScript`" -SystemTime `$(SystemTime) -ThreadID `$(ThreadID) -ProcessID `$(ProcessID) -Application '`$(Application)`' -Direction `$(Direction) -SourceAddress `$(SourceAddress) -SourcePort `$(SourcePort) -DestAddress `$(DestAddress) -DestPort `$(DestPort) -Protocol `$(Protocol)"
     [string] $TaskFile = (Join-Path -Path $PSScriptRoot -ChildPath "$TaskName.xml")
-    [string] $TaskTemplate = "<?xml version=`"1.0`" encoding=`"UTF-16`"?>
-<Task version=`"1.2`" xmlns=`"http://schemas.microsoft.com/windows/2004/02/mit/task`">
+    [string] $TaskTemplate = @'
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
 	<RegistrationInfo>
 		<Date>2015-08-16T03:36:29</Date>
 		<Author>Rally Vincent</Author>
-		<Description>lalalala</Description>
-		<URI>lalalala</URI>
+		<Description></Description>
+		<URI></URI>
 	</RegistrationInfo>
 	<Triggers>
 		<EventTrigger>
@@ -101,18 +102,21 @@ if ($args.Length -gt 0) {
 			<Enabled>true</Enabled>
 			<Subscription>&lt;QueryList&gt;&lt;Query&gt;&lt;Select Path='Security'&gt;*[System[(Level=4 or Level=0) and (EventID=5157)]] and *[EventData[Data[@Name='LayerRTID']='48']]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
 			<ValueQueries>
-			<Value name=`"Application`">Event/EventData/Data[@Name='Application']</Value>
-			<Value name=`"DestAddress`">Event/EventData/Data[@Name='DestAddress']</Value>
-			<Value name=`"DestPort`">Event/EventData/Data[@Name='DestPort']</Value>
-			<Value name=`"ProcessID`">Event/EventData/Data[@Name='ProcessID']</Value>
-			<Value name=`"Protocol`">Event/EventData/Data[@Name='Protocol']</Value>
-			<Value name=`"SourcePort`">Event/EventData/Data[@Name='SourcePort']</Value>
-			<Value name=`"ThreadID`">Event/System/Execution/@ThreadID</Value>
+                <Value name="SystemTime">Event/System/TimeCreated/@SystemTime</Value>
+                <Value name="ThreadID">Event/System/Execution/@ThreadID</Value>
+                <Value name="ProcessID">Event/EventData/Data[@Name='ProcessID']</Value>
+                <Value name="Application">Event/EventData/Data[@Name='Application']</Value>
+                <Value name="Direction">Event/EventData/Data[@Name='Direction']</Value>
+                <Value name="SourceAddress">Event/EventData/Data[@Name='SourceAddress']</Value>
+                <Value name="SourcePort">Event/EventData/Data[@Name='SourcePort']</Value>
+                <Value name="DestAddress">Event/EventData/Data[@Name='DestAddress']</Value>
+			    <Value name="DestPort">Event/EventData/Data[@Name='DestPort']</Value>
+		        <Value name="Protocol">Event/EventData/Data[@Name='Protocol']</Value>
 			</ValueQueries>
 		</EventTrigger>
 	</Triggers>
 	<Principals>
-		<Principal id=`"Author`">
+		<Principal id="Author">
 			<UserId>S-1-5-18</UserId>
 			<RunLevel>HighestAvailable</RunLevel>
 		</Principal>
@@ -136,13 +140,14 @@ if ($args.Length -gt 0) {
 		<ExecutionTimeLimit>PT72H</ExecutionTimeLimit>
 		<Priority>7</Priority>
 	</Settings>
-	<Actions Context=`"Author`">
+	<Actions Context="Author">
 		<Exec>
-			<Command>lalalala</Command>
-			<Arguments>lalalala</Arguments>
+			<Command></Command>
+			<Arguments></Arguments>
 		</Exec>
 	</Actions>
-</Task>"
+</Task>
+'@
     if ($args[0].Contains("logger")) {
         if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
             if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
@@ -181,7 +186,7 @@ if ($args.Length -gt 0) {
         }
         Add-ShortCut -Link (Join-Path -Path $Path -ChildPath "Windows Firewall Ereignisse.lnk") `
                      -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
-                     -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
+                     -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
                      -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
                      -Description "Zeigt die aufgezeichneten Ereignisse der Windows Firewall an."
         Add-Type -AssemblyName System.Windows.Forms
