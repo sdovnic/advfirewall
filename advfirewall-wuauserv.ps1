@@ -64,16 +64,22 @@ function Set-WindowsUpdateFirewall {
         $RemoteAddress = (
             $Import | Where-Object {
                 $_.Services -match $Service -and $_.DestPort -match $Port
-            } | Select-Object -ExpandProperty DestAddress | Get-Unique -AsString
+            } | Select-Object -ExpandProperty DestAddress -Unique
         )
-        Write-Verbose -Message "$RemoteAddress"
-        if (-not (Get-NetFirewallRule -Name $Name)) {
-            New-NetFirewallRule -Name $Name -DisplayName $Name -Enabled True ´
-                                -Profile Any -Direction Outbound -Action Allow ´
-                                -LocalAddress Any -RemoteAddress $RemoteAddress ´                                -Protocol $Protocol -LocalPort Any -RemotePort $Port ´                                -Program $Program
+        if (-not (Get-NetFirewallRule -Name $Name -ErrorAction SilentlyContinue)) {
+            New-NetFirewallRule -Name $Name -DisplayName $Name -Enabled True `
+                                -Profile Any -Direction Outbound -Action Allow `
+                                -LocalAddress Any -RemoteAddress $RemoteAddress `                                -Protocol $Protocol -LocalPort Any -RemotePort $Port `                                -Program $Program
         }
-        Set-NetFirewallRule -Name $Name -RemoteAddress $RemoteAddress
-        Show-Balloon -TipTitle "Windows Update Firewall" -TipText "Adressen zu `"$Name`" hinzugef$([char]0x00FC)gt." -TipIcon Info
+        $RuleRemoteAddress = (Get-NetFirewallRule -Name $Name | Get-NetFirewallAddressFilter).RemoteAddress
+        $NewRemoteAddress = Compare-Object -ReferenceObject $RuleRemoteAddress -DifferenceObject $RemoteAddress -PassThru | Where-Object { $_.SideIndicator -eq '=>' }
+        if ($NewRemoteAddress) {
+            Write-Verbose -Message "$NewRemoteAddress"
+            Set-NetFirewallRule -Name $Name -RemoteAddress $RemoteAddress
+            Show-Balloon -TipTitle "Folgende Adressen wurden zu `"$Name`" hinzugef$([char]0x00FC)gt." -TipText ($NewRemoteAddress -join ", ") -TipIcon Info
+        } else {
+            Show-Balloon -TipTitle "Windows Firewall Update" -TipText "Es wurden keine neuen Adressen zu `"$Name`" hinzugef$([char]0x00FC)gt."  -TipIcon Warning
+        }
     }
 }
 
