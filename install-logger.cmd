@@ -1,1 +1,1 @@
-@start /min powershell -NoProfile -ExecutionPolicy Bypass .\advfirewall-installer.ps1 logger
+@start /min powershell -NoProfile -ExecutionPolicy Bypass -File .\advfirewall-installer.ps1 logger

@@ -2,7 +2,7 @@ param(
     [string] $SystemTime,
     [string] $ThreadID,
     [string] $ProcessID,
-    $Application,
+    [string] $Application,
     [string] $Direction,
     [string] $SourceAddress,
     [string] $SourcePort,
