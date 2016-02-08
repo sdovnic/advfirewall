@@ -84,7 +84,7 @@ if ($args.Length -gt 0) {
     [string] $LogFile = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv")
     [string] $TaskDescription = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt $TaskScript und schreibt in die Datei $LogFile."
     [string] $TaskCommand = (Join-Path -Path $PSHOME -ChildPath "powershell.exe")
-    [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$TaskScript`" -SystemTime `$(SystemTime) -ThreadID `$(ThreadID) -ProcessID `$(ProcessID) -Application `$(Application)` -Direction `$(Direction) -SourceAddress `$(SourceAddress) -SourcePort `$(SourcePort) -DestAddress `$(DestAddress) -DestPort `$(DestPort) -Protocol `$(Protocol)"
+    [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$TaskScript`" -SystemTime `$(SystemTime) -ThreadID `$(ThreadID) -ProcessID `$(ProcessID) -Application `"`$(Application)`" -Direction `$(Direction) -SourceAddress `$(SourceAddress) -SourcePort `$(SourcePort) -DestAddress `$(DestAddress) -DestPort `$(DestPort) -Protocol `$(Protocol)"
     [string] $TaskFile = (Join-Path -Path $PSScriptRoot -ChildPath "$TaskName.xml")
     [string] $TaskTemplate = @'
 <?xml version="1.0" encoding="UTF-16"?>
