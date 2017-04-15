@@ -170,7 +170,7 @@ if ($args.Length -gt 0) {
                 } else {
                     $Path = [Environment]::GetFolderPath("StartMenu")
                 }
-                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath "{0}.lnk" -f $Messages."Windows Firewall Events")
+                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Events"))
                 Add-Type -AssemblyName System.Windows.Forms
                 Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Event Logging removed." `
                              -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
