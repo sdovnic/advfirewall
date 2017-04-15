@@ -135,7 +135,7 @@ if ($args.Length -gt 0) {
         } else {
             $Path = [Environment]::GetFolderPath("StartMenu")
         }
-        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath "{0}.lnk" -f $Messages."Windows Firewall Events") `
+        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Events")) `
                      -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
                      -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
                      -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
