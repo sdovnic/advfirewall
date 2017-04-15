@@ -1,0 +1,17 @@
+@{
+    "Task already exist!" = "Aufagbe bereits vorhanden!"
+    "Get-ScheduledTask not supported, using Schtasks." = "Get-ScheduledTask wird nicht unterst$([char]0x00FC)tzt, verwende Schtasks."
+    "Windows Firewall Events" = "Windows Firewall Ereignisse"
+    "Displays the recorded events of the Windows Firewall." = "Zeigt die aufgezeichneten Ereignisse der Windows Firewall an."
+    "Windows Firewall Event Logging installed." = "Windows Firewall Event Logging installiert."
+    "Windows Firewall Event Logging removed." = "Windows Firewall Event Logging entfernt."
+    "Send to Windows Firewall installed." = "Senden an Windows Firewall installiert."
+    "Send to Windows Firewall removed." = "Senden an Windows Firewall entfernt."
+    "Windows Firewall Pause" = "Windows Firewall Pause"
+    "Windows Firewall create Incoming Rule" = "Windows Firewall Eingehende Regel eintragen"
+    "Windows Firewall create Outgoing Rule" = "Windows Firewall Ausgehende Regel eintragen"
+    "Adds an Outgoing Rule to the Windows Firewall." = "Tr$([char]0x00E4)gt eine Ausgehende Regel in die Windows Firewall ein."
+    "Adds an Incoming Rule to the Windows Firewall." = "Tr$([char]0x00E4)gt eine Einghende Regel in die Windows Firewall ein."
+    "Temporarily turns off Windows Firewall." = "Schaltet vor$([char]0x00FC)bergehend die Windows Firewall aus."
+    "Records Windows Firewall events, requires {0}, and writes to file {1}." = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt {0} und schreibt in die Datei {1}."
+}

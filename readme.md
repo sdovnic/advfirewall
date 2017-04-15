@@ -2,16 +2,20 @@
 
 A Collection of Scripts to Manage your Advanced Windows Firewall.
 
-## Description
+Eine Sammlung von Skripten zum Verwalten Ihrer Windows-Firewall mit erweiterter Sicherheit.
+
+## Description / Beschreibung
 
 Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Windows Firewall Event Logging to simple Text Logfile. You will find the Log Files in your Script Directory. You can even restore your custom Firewall Rules when running the Rules Logfile as a Command Script. From your StartMenu you can pause the Firewall and view the logged Firewall Events.
 
-## Requirements
+Einfaches Hinzufügen neuer Regeln für den Eingehenden und Ausgehenden Datenverkehr Ihrer Anwendungen. Ereignisse werden in eine einfache Datei gespeichert. Sie finden die Protokolldateien in Ihrem Skript-Verzeichnis. Sie können sogar Ihre Benutzerdefinierten Firewall-Regeln wiederherstellen wenn sie das Protokoll der Regeln als Kommando-Skript ausführen. Von Ihrem Startmenü können Sie die Firewall pausieren und die erfassten Firewall Ereignisse ansehen.
+
+## Requirements / Vorraussetzungen
 
 * Windows Operating System
-* Elevated Command Prompt (Only for the Event Logger)
+* Elevated Command Prompt (Only for the Event Logger / Nur für die Ereignisprotokollierung)
 
-## Supported Operating Systems
+## Supported Operating Systems / Unterstützte Betriebssysteme
 
 * Windows 7
 * Windows 8

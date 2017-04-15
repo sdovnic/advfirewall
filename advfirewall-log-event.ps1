@@ -29,6 +29,9 @@ $Event = @{
     Services = [string] (Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 }
 
+# Todo: Tray {} Catch {}
+# Todo: $ErrorLog = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-error.log")
+
 if ($PSVersionTable.PSVersion.Major -gt 2) {
     Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject (New-Object -TypeName PsObject -Property $Event)
 } else {

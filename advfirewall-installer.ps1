@@ -1,9 +1,11 @@
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
+
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
+
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     [bool] $Elevate = $false
     if ($args.Length -gt 1) {
@@ -21,68 +23,18 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
         return
     }
 }
-function Show-Balloon {
-    param(
-        [parameter(Mandatory=$true)] [string] $TipTitle,
-        [parameter(Mandatory=$true)] [string] $TipText,
-        [parameter(Mandatory=$false)] [ValidateSet("Info", "Error", "Warning")] [string] $TipIcon,
-        [string] $Icon
-    )
-    process {
-        [Void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-        $FormsNotifyIcon = New-Object -TypeName System.Windows.Forms.NotifyIcon
-        if (-not $Icon) { $Icon = (Join-Path -Path $PSHOME -ChildPath "powershell.exe"); }
-        $DrawingIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Icon)
-        $FormsNotifyIcon.Icon = $DrawingIcon
-        if (-not $TipIcon) { $TipIcon = "Info"; }
-        $FormsNotifyIcon.BalloonTipIcon = $TipIcon;
-        $FormsNotifyIcon.BalloonTipTitle = $TipTitle
-        $FormsNotifyIcon.BalloonTipText = $TipText
-        $FormsNotifyIcon.Visible = $True
-        $FormsNotifyIcon.ShowBalloonTip(5000)
-        $FormsNotifyIcon.Dispose()
-    }
-}
-function Add-ShortCut {
-    param(
-        [parameter(Mandatory=$true)] [string] $Link,
-        [parameter(Mandatory=$true)] [string] $TargetPath,
-        [string] $Arguments,
-        [string] $IconLocation,
-        [string] $WorkingDirectory,
-        [string] $Description,
-        [parameter(Mandatory=$false)] [ValidateSet("Normal", "Minimized", "Maximized")] [string] $WindowStyle
-    )
-    process {
-        if (Test-Path -Path $TargetPath) {
-            $WShell = New-Object -ComObject WScript.Shell
-            $Shortcut = $WShell.CreateShortcut($Link)
-            $Shortcut.TargetPath = $TargetPath
-            if ($Arguments) { $Shortcut.Arguments = $Arguments; }
-            if ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
-            if ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
-            if ($WindowStyle) {
-                switch ($WindowStyle) {
-                    "Normal" { [int] $WindowStyleNumerate = 4 };
-                    "Minimized" { [int] $WindowStyleNumerate = 7 };
-                    "Maximized" { [int] $WindowStyleNumerate = 3 };
-                }
-                $Shortcut.WindowStyle = $WindowStyleNumerate;
-            }
-            if ($Description) { $Shortcut.Description = $Description; }
-            $Shortcut.Save()
-        }
-    }
-}
-function Remove-Shortcut {
-    param([parameter(Mandatory=$true)] [string] $Link)
-    if (Test-Path -Path $Link) { Remove-Item -Path $Link; }
-}
+
+Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
+
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Add-ShortCut)
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Remove-ShortCut)
+
 if ($args.Length -gt 0) {
     [string] $TaskName = "advfirewall-log-event"
     [string] $TaskScript = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-log-event.ps1")
     [string] $LogFile = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv")
-    [string] $TaskDescription = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt $TaskScript und schreibt in die Datei $LogFile."
+    [string] $TaskDescription = $Messages."Records Windows Firewall events, requires {0}, and writes to file {1}." -f $TaskScript, $LogFile
     [string] $TaskCommand = (Join-Path -Path $PSHOME -ChildPath "powershell.exe")
     [string] $TaskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$TaskScript`" -SystemTime `$(SystemTime) -ThreadID `$(ThreadID) -ProcessID `$(ProcessID) -Application `"`$(Application)`" -Direction `$(Direction) -SourceAddress `$(SourceAddress) -SourcePort `$(SourcePort) -DestAddress `$(DestAddress) -DestPort `$(DestPort) -Protocol `$(Protocol)"
     [string] $TaskFile = (Join-Path -Path $PSScriptRoot -ChildPath "$TaskName.xml")
@@ -121,7 +73,7 @@ if ($args.Length -gt 0) {
 		</Principal>
 	</Principals>
 	<Settings>
-		<MultipleInstancesPolicy>Parallel</MultipleInstancesPolicy>
+		<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
 		<DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
 		<StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
 		<AllowHardTerminate>true</AllowHardTerminate>
@@ -150,7 +102,7 @@ if ($args.Length -gt 0) {
     if ($args[0].Contains("logger")) {
         if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
             if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
-                Write-Warning -Message "Task already exist!"
+                Write-Warning -Message $Messages."Task already exist!"
             } else {
                 $TaskTemplate = $TaskTemplate -replace "<Description>(.*)</Description>", "<Description>$TaskDescription</Description>"
                 $TaskTemplate = $TaskTemplate -replace "<URI>(.*)</URI>", "<URI>\$TaskName</URI>"
@@ -162,10 +114,10 @@ if ($args.Length -gt 0) {
                 Remove-Item -Path $TaskFile
             }
         } else {
-            Write-Warning -Message "Get-ScheduledTask not supported, using Schtasks."
+            Write-Warning -Message $Messages."Get-ScheduledTask not supported, using Schtasks."
             $Query = schtasks /Query /TN "\$TaskName" | Out-String
             if ($Query.Contains($TaskName)) {
-                Write-Warning -Message "Task already exist!"
+                Write-Warning -Message $Messages."Task already exist!"
             } else {
                 $TaskTemplate = $TaskTemplate -replace "<Description>(.*)</Description>", "<Description>$TaskDescription</Description>"
                 $TaskTemplate = $TaskTemplate -replace "<URI>(.*)</URI>", "<URI>\$TaskName</URI>"
@@ -183,16 +135,16 @@ if ($args.Length -gt 0) {
         } else {
             $Path = [Environment]::GetFolderPath("StartMenu")
         }
-        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath "Windows Firewall Ereignisse.lnk") `
+        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath "{0}.lnk" -f $Messages."Windows Firewall Events") `
                      -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
                      -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-view-events.ps1`"" `
                      -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
-                     -Description "Zeigt die aufgezeichneten Ereignisse der Windows Firewall an."
+                     -Description $Messages."Displays the recorded events of the Windows Firewall."
         Add-Type -AssemblyName System.Windows.Forms
-        Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging installiert." `
+        Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Event Logging installed." `
                      -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
         $Result = [System.Windows.Forms.MessageBox]::Show(
-            "Windows Firewall Event Logging installiert.", "Windows Firewall", 0,
+            $Messages."Windows Firewall Event Logging installed.", "Windows Firewall", 0,
             [System.Windows.Forms.MessageBoxIcon]::Information
         )
     } elseif ($args[0].Contains("remove")) {
@@ -204,7 +156,7 @@ if ($args.Length -gt 0) {
                         Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
                     }
                 } else {
-                    Write-Warning -Message "Get-ScheduledTask not supported, using Schtasks."
+                    Write-Warning -Message $Messages."Get-ScheduledTask not supported, using Schtasks."
                     $Query = schtasks /Query /TN "\$TaskName" | Out-String
                     if ($Query.Contains($TaskName)) {
                         [array] $ArgumentList = @("/Delete", "/TN `"\$TaskName`"", "/F")
@@ -218,52 +170,52 @@ if ($args.Length -gt 0) {
                 } else {
                     $Path = [Environment]::GetFolderPath("StartMenu")
                 }
-                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath "Windows Firewall Ereignisse.lnk")
+                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath "{0}.lnk" -f $Messages."Windows Firewall Events")
                 Add-Type -AssemblyName System.Windows.Forms
-                Show-Balloon -TipTitle "Windows Firewall" -TipText "Windows Firewall Event Logging entfernt." `
+                Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Event Logging removed." `
                              -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
                 $Result = [System.Windows.Forms.MessageBox]::Show(
-                    "Windows Firewall Event Logging entfernt.", "Windows Firewall", 0,
+                    $Messages."Windows Firewall Event Logging removed.", "Windows Firewall", 0,
                     [System.Windows.Forms.MessageBoxIcon]::Information
                 )
             }
         } else {
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Ausgehende Regel eintragen.lnk")
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk")
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk")
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule"))
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule"))
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause"))
             Add-Type -AssemblyName System.Windows.Forms
-            Show-Balloon -TipTitle "Windows Firewall" -TipText "Senden an Windows Firewall entfernt." `
+            Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Send to Windows Firewall removed." `
                          -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
             $Result = [System.Windows.Forms.MessageBox]::Show(
-                "Senden an Windows Firewall entfernt.", "Windows Firewall", 0,
+                $Messages."Send to Windows Firewall removed.", "Windows Firewall", 0,
                 [System.Windows.Forms.MessageBoxIcon]::Information
             )
         }
     }
 } else {
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Ausgehende Regel eintragen.lnk") `
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule")) `
                  -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Tr$([char]0x00E4)gt eine Ausgehende Regel in die Windows Firewall ein."
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath "Windows Firewall Eingehende Regel eintragen.lnk") `
+                 -Description $Messages."Adds an Outgoing Rule to the Windows Firewall."
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule")) `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Tr$([char]0x00E4)gt eine Einghende Regel in die Windows Firewall ein."
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath "Windows Firewall Pause.lnk") `
+                 -Description $Messages."Adds an Incoming Rule to the Windows Firewall."
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause")) `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
-                 -Description "Schaltet vor$([char]0x00FC)bergehend die Windows Firewall aus."
+                 -Description $Messages."Temporarily turns off Windows Firewall."
     Add-Type -AssemblyName System.Windows.Forms
-    Show-Balloon -TipTitle "Windows Firewall" -TipText "Senden an Windows Firewall installiert." `
+    Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Send to Windows Firewall installed." `
                  -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     $Result = [System.Windows.Forms.MessageBox]::Show(
-        "Senden an Windows Firewall installiert.", "Windows Firewall", 0,
+        $Messages."Send to Windows Firewall installed.", "Windows Firewall", 0,
         [System.Windows.Forms.MessageBoxIcon]::Information
     )
 }

@@ -1,3 +1,5 @@
+Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
+
 [hashtable] $Protocol = @{
     1 = "ICMP";
     3 = "GGP";
@@ -17,8 +19,8 @@
     89 = "OSPF";
 }
 $Direction = @{
-    "%%14593" = "Ausgehend";
-    "%%14592" = "Eingehend";
+    "%%14593" = $Messages."Outgoing";
+    "%%14592" = $Messages."Incoming";
 }
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
@@ -108,38 +110,40 @@ namespace Utils
 }
 '@
         Add-Type -TypeDefinition $WaitHelperSource
-        Import-Csv -Path $PSScriptRoot\advfirewall-events.csv | 
-        Sort-Object -Property SystemTime -Descending | 
-        Select-Object -Property @{Label = "Zeitpunkt"; Expression = {$_.SystemTime}}, `
-                                @{Label = "Zieladresse"; Expression = {$_.DestAddress}}, `
-                                @{Label = "Zielport"; Expression = {[int] $_.DestPort}}, `
-                                @{Label = "Protokoll"; Expression = {$Protocol[[int] $_.Protocol]}}, `
-                                @{Label = "Prozess ID"; Expression = {[int] $_.ProcessID}}, `
-                                @{Label = "Anwendung"; Expression = {$_.Application}}, `                                @{Label = "Dienste"; Expression = {$_.Services}}, `
-                                @{Label = "Richtung"; Expression = {$Direction[$_.Direction]}}, `
-                                @{Label = "Quelladresse"; Expression = {$_.SourceAddress}}, `
-                                @{Label = "Quellport"; Expression = {[int] $_.SourcePort}} | 
-        Out-GridView -Title "Windows Firewall Ereignisprotokoll"
+        Import-Csv -Path $PSScriptRoot\advfirewall-events.csv |
+        Sort-Object -Property SystemTime -Descending |
+        Select-Object -Property @{Label = $Messages."Time"; Expression = {$_.SystemTime}}, `
+                                @{Label = $Messages."Destination Address"; Expression = {$_.DestAddress}}, `
+                                @{Label = $Messages."Destination Port"; Expression = {[int] $_.DestPort}}, `
+                                @{Label = $Messages."Protocol"; Expression = {$Protocol[[int] $_.Protocol]}}, `
+                                @{Label = $Messages."Process ID"; Expression = {[int] $_.ProcessID}}, `
+                                @{Label = $Messages."Application"; Expression = {$_.Application}}, `
+                                @{Label = $Messages."Services"; Expression = {$_.Services}}, `
+                                @{Label = $Messages."Direction"; Expression = {$Direction[$_.Direction]}}, `
+                                @{Label = $Messages."Source Address"; Expression = {$_.SourceAddress}}, `
+                                @{Label = $Messages."Source Port"; Expression = {[int] $_.SourcePort}} |
+        Out-GridView -Title $Messages."Windows Firewall Event Log"
         $WaitHelper = New-Object -TypeName Utils.WindowHelper
         $WaitHelper.WaitForOutGridViewWindowToClose()
     } else {
-        Import-Csv -Path $PSScriptRoot\advfirewall-events.csv | 
-        Sort-Object -Property SystemTime -Descending | 
-        Select-Object -Property @{Label = "Zeitpunkt"; Expression = {$_.SystemTime}}, `
-                                @{Label = "Zieladresse"; Expression = {$_.DestAddress}}, `
-                                @{Label = "Zielport"; Expression = {[int] $_.DestPort}}, `
-                                @{Label = "Protokoll"; Expression = {$Protocol[[int] $_.Protocol]}}, `
-                                @{Label = "Prozess ID"; Expression = {[int] $_.ProcessID}}, `
-                                @{Label = "Anwendung"; Expression = {$_.Application}}, `                                @{Label = "Dienste"; Expression = {$_.Services}}, `
-                                @{Label = "Richtung"; Expression = {$Direction[$_.Direction]}}, `
-                                @{Label = "Quelladresse"; Expression = {$_.SourceAddress}}, `
-                                @{Label = "Quellport"; Expression = {[int] $_.SourcePort}} | 
-        Out-GridView -Title "Windows Firewall Ereignisprotokoll" -Wait
+        Import-Csv -Path $PSScriptRoot\advfirewall-events.csv |
+        Sort-Object -Property SystemTime -Descending |
+        Select-Object -Property @{Label = $Messages."Time"; Expression = {$_.SystemTime}}, `
+                                @{Label = $Messages."Destination Address"; Expression = {$_.DestAddress}}, `
+                                @{Label = $Messages."Destination Port"; Expression = {[int] $_.DestPort}}, `
+                                @{Label = $Messages."Protocol"; Expression = {$Protocol[[int] $_.Protocol]}}, `
+                                @{Label = $Messages."Process ID"; Expression = {[int] $_.ProcessID}}, `
+                                @{Label = $Messages."Application"; Expression = {$_.Application}}, `
+                                @{Label = $Messages."Services"; Expression = {$_.Services}}, `
+                                @{Label = $Messages."Direction"; Expression = {$Direction[$_.Direction]}}, `
+                                @{Label = $Messages."Source Address"; Expression = {$_.SourceAddress}}, `
+                                @{Label = $Messages."Source Port"; Expression = {[int] $_.SourcePort}} |
+        Out-GridView -Title $Messages."Windows Firewall Event Log" -Wait
     }
 } else {
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
     $Result = [System.Windows.Forms.MessageBox]::Show(
-        "Es ist keine Log Datei vorhanden!",
+        $Messages."There is no log file available!",
         "Windows Firewall", 0, [System.Windows.Forms.MessageBoxIcon]::Error
     )
 }
