@@ -29,7 +29,7 @@ $Event = @{
     Services = [string] (Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
 }
 
-# Todo: Tray {} Catch {}
+# Todo: Try {} Catch {}
 # Todo: $ErrorLog = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-error.log")
 
 if ($PSVersionTable.PSVersion.Major -gt 2) {
@@ -46,6 +46,31 @@ if ($PSVersionTable.PSVersion.Major -gt 2) {
     Remove-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv")
 }
 
+$AutoAllowServices = @{
+    "wuauserv" = "Windows Update"
+    "wlidsvc" = "Windows Live ID"
+}
+
+foreach ($AutoAllowService in $AutoAllowServices.GetEnumerator()) {
+    if ($Event.Services -match $AutoAllowService.Name) {
+        if ((Get-WmiObject -Class Win32_OperatingSystem).Caption -match "Windows 10") {
+            $Name = "{0} {1}" -f ($AutoAllowService.Value, $Event.DestPort)
+            if (-not (Get-NetFirewallRule -Name $Name -ErrorAction SilentlyContinue)) {
+                New-NetFirewallRule -Name $Name -DisplayName $Name -Enabled True `
+                                    -Profile Any -Direction Outbound -Action Allow `
+                                    -LocalAddress Any -RemoteAddress $Event.DestAddress `
+                                    -Protocol $Event.Protocol -LocalPort Any -RemotePort $Event.DestPort `
+                                    -Program "%SystemRoot%\System32\svchost.exe"
+            } else {
+                [array] $RuleRemoteAddress = (Get-NetFirewallRule -Name $Name | Get-NetFirewallAddressFilter).RemoteAddress
+                [array] $RemoteAddress = ($RuleRemoteAddress) + $Event.DestAddress
+                Set-NetFirewallRule -Name $Name -RemoteAddress $RemoteAddress
+            }
+        }
+    }
+}
+
+<#
 if ($Event.Services -match "wuauserv") {
     if ((Get-WmiObject -Class Win32_OperatingSystem).Caption -match "Windows 10") {
         $Name = "Windows Update {0}" -f $Event.DestPort
@@ -62,3 +87,4 @@ if ($Event.Services -match "wuauserv") {
         }
     }
 }
+#>
