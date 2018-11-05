@@ -1,0 +1,1 @@
+@start /min powershell -NoProfile -ExecutionPolicy Bypass -File .\advfirewall-notification.ps1
