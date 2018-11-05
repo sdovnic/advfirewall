@@ -12,12 +12,11 @@ Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Ballo
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-DevicePathToDriveLetter)
 
 if ($args) {
-    $Arguments = $args[0]  
+    $Arguments = $args[0]
     #Show-Balloon -TipTitle "Windows Firewall" -TipText ([string] $Arguments) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     if ($Arguments.Contains("advfirewall:pid")) {
         $Id = ($Arguments -split "=")[-1]
-        $Id
-        Stop-Process -Id $Id
+        Stop-Process -Id $Id -Verbose
         Show-Balloon -TipTitle "Windows Firewall" -TipText ("Advanced Firewall Notifications are now disabled.") -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:hide")) {
         $Arguments = ($Arguments -split "=")[-1]

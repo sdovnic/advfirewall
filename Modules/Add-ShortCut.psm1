@@ -1,4 +1,5 @@
 function Add-ShortCut {
+    [CmdletBinding()]
     param(
         [parameter(Mandatory=$true)] [string] $Link,
         [parameter(Mandatory=$true)] [string] $TargetPath,
@@ -13,18 +14,18 @@ function Add-ShortCut {
             $WShell = New-Object -ComObject WScript.Shell
             $Shortcut = $WShell.CreateShortcut($Link)
             $Shortcut.TargetPath = $TargetPath
-            if ($Arguments) { $Shortcut.Arguments = $Arguments; }
-            if ($IconLocation) { $Shortcut.IconLocation = $IconLocation; }
-            if ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory; }
+            if ($Arguments) { $Shortcut.Arguments = $Arguments }
+            if ($IconLocation) { $Shortcut.IconLocation = $IconLocation }
+            if ($WorkingDirectory) { $Shortcut.WorkingDirectory = $WorkingDirectory }
             if ($WindowStyle) {
                 switch ($WindowStyle) {
-                    "Normal" { [int] $WindowStyleNumerate = 4 };
-                    "Minimized" { [int] $WindowStyleNumerate = 7 };
-                    "Maximized" { [int] $WindowStyleNumerate = 3 };
+                    "Normal" { [int] $WindowStyleNumerate = 4 }
+                    "Minimized" { [int] $WindowStyleNumerate = 7 }
+                    "Maximized" { [int] $WindowStyleNumerate = 3 }
                 }
-                $Shortcut.WindowStyle = $WindowStyleNumerate;
+                $Shortcut.WindowStyle = $WindowStyleNumerate
             }
-            if ($Description) { $Shortcut.Description = $Description; }
+            if ($Description) { $Shortcut.Description = $Description }
             $Shortcut.Save()
         }
     }

@@ -14,4 +14,8 @@
     "Adds an Incoming Rule to the Windows Firewall." = "Adds an Incoming Rule to the Windows Firewall."
     "Temporarily turns off Windows Firewall." = "Temporarily turns off Windows Firewall."
     "Records Windows Firewall events, requires {0}, and writes to file {1}." = "Records Windows Firewall events, requires {0}, and writes to file {1}."
+    "Notification for Windows Firewall events." = "Notification for Windows Firewall events."
+    "Windows Firewall Notification installed." = "Windows Firewall Notification installed."
+    "Windows Firewall Notification" = "Windows Firewall Notification"
+    "Windows Firewall Notification removed." = "Windows Firewall Notification removed."
 }

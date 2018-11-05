@@ -99,7 +99,56 @@ if ($args.Length -gt 0) {
 	</Actions>
 </Task>
 '@
-    if ($args[0].Contains("logger")) {
+    if ($args[0].Contains("local")) {
+    } elseif ($args[0].Contains("notification")) {
+        if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall" -ErrorAction SilentlyContinue)) {
+            New-Item -Path "HKCU:\Software\Classes\advfirewall" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "(Default)" -Value "URL:advfirewall Protocol" -Verbose
+        }
+
+        if (-not (Get-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "EditFlags" -ErrorAction SilentlyContinue)) {
+            New-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "EditFlags" -Value 0x00210000 -Verbose
+        }
+        if (-not (Get-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "URL Protocol" -ErrorAction SilentlyContinue)) {
+            New-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "URL Protocol" -Value "" -Verbose
+        }
+
+        if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -ErrorAction SilentlyContinue)) {
+            New-Item -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Name "(Default)" -Value "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Verbose
+        }
+
+        if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell" -ErrorAction SilentlyContinue)) {
+            New-Item -Path "HKCU:\Software\Classes\advfirewall\shell" -Verbose
+        }
+
+        if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open" -ErrorAction SilentlyContinue)) {
+            New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open" -Verbose
+        }
+
+        if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -ErrorAction SilentlyContinue)) {
+            New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" -Value "$(Join-Path -Path $PSHOME -ChildPath "powershell.exe") -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
+        }
+        $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
+        if (-not ($env:USERNAME -eq $Username)) {
+            $Path = [Environment]::GetFolderPath("StartUp") -replace $env:USERNAME, $Username
+        } else {
+            $Path = [Environment]::GetFolderPath("StartUp")
+        }
+        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Notification")) `
+                     -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
+                     -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification.ps1`"" `
+                     -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
+                     -Description $Messages."Notification for Windows Firewall events."
+        Add-Type -AssemblyName System.Windows.Forms
+        Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Notification installed." `
+                     -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        $Result = [System.Windows.Forms.MessageBox]::Show(
+            $Messages."Windows Firewall Notification installed.", "Windows Firewall", 0,
+            [System.Windows.Forms.MessageBoxIcon]::Information
+        )
+    } elseif ($args[0].Contains("logger")) {
         if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
             if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
                 Write-Warning -Message $Messages."Task already exist!"
@@ -149,7 +198,27 @@ if ($args.Length -gt 0) {
         )
     } elseif ($args[0].Contains("remove")) {
         if ($args.Length -gt 1) {
-            if ($args[1].Contains("logger")) {
+            if ($args[1].Contains("local")) {
+            } elseif ($args[1].Contains("notification")) {
+                if (Test-Path -Path "HKCU:\Software\Classes\advfirewall" -ErrorAction SilentlyContinue) {
+                    Remove-Item -Path "HKCU:\Software\Classes\advfirewall" -Recurse -Verbose
+                }
+                # Todo: Remove StartUp Link
+                $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
+                if (-not ($env:USERNAME -eq $Username)) {
+                    $Path = [Environment]::GetFolderPath("StartUp") -replace $env:USERNAME, $Username
+                } else {
+                    $Path = [Environment]::GetFolderPath("StartUp")
+                }
+                Remove-ShortCut -Link (Join-Path -Path $Path -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Notification")) -Verbose
+                Add-Type -AssemblyName System.Windows.Forms
+                Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Notification removed." `
+                             -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+                $Result = [System.Windows.Forms.MessageBox]::Show(
+                    $Messages."Windows Firewall Notification removed.", "Windows Firewall", 0,
+                    [System.Windows.Forms.MessageBoxIcon]::Information
+                )
+            } elseif ($args[1].Contains("logger")) {
                 if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
                     if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
                         Unregister-ScheduledTask -TaskName $TaskName -TaskPath "\" -Confirm:$False

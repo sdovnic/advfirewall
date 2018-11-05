@@ -2,38 +2,6 @@
 $global:FileChanged = $false
 $VerbosePreference = "Continue"
 
-<#
-if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall" -ErrorAction SilentlyContinue)) {
-    New-Item -Path "HKCU:\Software\Classes\advfirewall" -Verbose
-    Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "(Default)" -Value "URL:advfirewall Protocol" -Verbose
-}
-
-if (-not (Get-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "EditFlags" -ErrorAction SilentlyContinue)) {
-    New-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "EditFlags" -Value 0x00210000 -Verbose
-}
-if (-not (Get-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "URL Protocol" -ErrorAction SilentlyContinue)) {
-    New-ItemProperty -Path "HKCU:\Software\Classes\advfirewall" -Name "URL Protocol" -Value "" -Verbose
-}
-
-if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -ErrorAction SilentlyContinue)) {
-    New-Item -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Verbose
-    Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Name "(Default)" -Value "C:\Program Files\Windows Defender\MpCmdRun.exe" -Verbose
-}
-
-if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell" -ErrorAction SilentlyContinue)) {
-    New-Item -Path "HKCU:\Software\Classes\advfirewall\shell" -Verbose
-}
-
-if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open" -ErrorAction SilentlyContinue)) {
-    New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open" -Verbose
-}
-
-if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -ErrorAction SilentlyContinue)) {
-    New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Verbose
-    Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File `"C:\Portable\advfirewall\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
-}
-#>
-
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }

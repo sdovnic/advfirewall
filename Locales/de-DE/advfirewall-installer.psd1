@@ -14,4 +14,8 @@
     "Adds an Incoming Rule to the Windows Firewall." = "Tr$([char]0x00E4)gt eine Einghende Regel in die Windows Firewall ein."
     "Temporarily turns off Windows Firewall." = "Schaltet vor$([char]0x00FC)bergehend die Windows Firewall aus."
     "Records Windows Firewall events, requires {0}, and writes to file {1}." = "Zeichnet Windows Firewall Ereignisse auf, ben$([char]0x00F6)tigt {0} und schreibt in die Datei {1}."
+    "Notification for Windows Firewall events." = "Benachrichtigungen f$([char]0x00FC)r Windows Firewall Ereignisse."
+    "Windows Firewall Notification installed." = "Windows Firewall Benachrichtigungen installiert."
+    "Windows Firewall Notification" = "Windows Firewall Benachrichtigungen"
+    "Windows Firewall Notification removed." = "Windows Firewall Benachrichtigungen entfernt."
 }

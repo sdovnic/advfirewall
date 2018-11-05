@@ -1,4 +1,5 @@
 function Convert-DevicePathToDriveLetter {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)] $Path
     )
