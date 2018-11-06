@@ -69,7 +69,7 @@ function Show-Toast {
         )] [string] $BindingTemplate = "ToastGeneric"
     )
     begin {
-        $ApplicationId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
+        # $ApplicationId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
         $ApplicationId = 'Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI'
         [void] [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
         [void] [Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime]
@@ -85,7 +85,7 @@ function Show-Toast {
             $Index = $Index + 1
             $XmlAudio = ("<audio src=`"ms-winsoundevent:Notification.{0}`" loop=`"false`" />" -f $Audio)
         }
-        $Image = "file:///C:\Windows\SystemApps\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy\Assets\Square71x71Logo.contrast-black_scale-400.png"
+        # $Image = "file:///C:\Windows\SystemApps\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy\Assets\Square71x71Logo.contrast-black_scale-400.png"
         $Image = "file:///C:\Program Files\Windows Defender\Defendericon.png"
         foreach ($ImageItem in $Image) {
             $Index = $Index + 1
@@ -156,9 +156,7 @@ function Wait-FileChange {
 
 $Log = (Get-Content -Path "C:\Portable\advfirewall\advfirewall-events.csv" -Tail 1)
 $Last = $Log -split ","
-$Log = [System.Text.Encoding]::UTF8.GetBytes($Log)
-$Log = [Convert]::ToBase64String($Log)
-
+$Log = [System.Net.WebUtility]::UrlEncode($Log)
 [hashtable] $Protocol = @{
     1 = "ICMP";
     3 = "GGP";

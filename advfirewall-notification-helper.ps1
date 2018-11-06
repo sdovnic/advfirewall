@@ -13,36 +13,30 @@ Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-De
 
 if ($args) {
     $Arguments = $args[0]
-    #Show-Balloon -TipTitle "Windows Firewall" -TipText ([string] $Arguments) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     if ($Arguments.Contains("advfirewall:pid")) {
         $Id = ($Arguments -split "=")[-1]
         Stop-Process -Id $Id -Verbose
         Show-Balloon -TipTitle "Windows Firewall" -TipText ("Advanced Firewall Notifications are now disabled.") -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:hide")) {
-        $Arguments = ($Arguments -split "=")[-1]
-        $Arguments = [Convert]::FromBase64String($Arguments) -split ","
-        if ($Arguments[2]) {
-            $Services = $Arguments[2]
+        $Arguments = ($Arguments -split "=")
+        $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
+        $Event = $Event -split ","
+        if ($Event[2]) {
+            $Services = $Event[2] -replace "`"", ""
         }
-        $Application = $Arguments[7]
-        $Application = Convert-DevicePathToDriveLetter -Path $Application
+        $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
         Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Application) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:allow")) {
-        $Arguments = ($Arguments -split "=")[1] # -split ","
-        $Arguments
-        $Arguments = [Convert]::FromBase64String($Arguments + "=")
-        $Arguments
-        $Arguments = -split ","
-        <#
-        if (-not $Arguments[2]) {
-            $Application = $Arguments[7]
-            $Application = Convert-DevicePathToDriveLetter -Path $Application
-            Show-Balloon -TipTitle "Windows Firewall" -TipText ([string] $Arguments) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
-            #("Network connections for {0} are now allowed." -f $Arguments)
+        $Arguments = ($Arguments -split "=")
+        $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
+        $Event = $Event -split ","
+        if ($Event[2]) {
+            $Services = $Event[2] -replace "`"", ""
         }
-        #>
+        $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
+        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Application) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     }
 }
-pause
 
+# start shell:StartUp
 # start advfirewall:allow=$(Get-Content -Path C:\Portable\advfirewall\advfirewall-events.csv -Tail 1)
