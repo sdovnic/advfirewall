@@ -197,7 +197,7 @@ $Direction = @{
 [string] $SourceAddress = $Last[6] -replace "`"", ""
 
 [string] $Application = $Last[7] -replace "`"", ""
-[string] $Executable = ($Last[7] -split "\\")[-1]
+#[string] $Executable = ($Last[7] -split "\\")[-1]
 $Application = Convert-DevicePathToDriveLetter -Path $Application
 
 [string] $SystemTime = $Last[8] -replace "`"", ""
@@ -206,24 +206,48 @@ $Application = Convert-DevicePathToDriveLetter -Path $Application
 
 [string] $DestAddress = $Last[10] -replace "`"", ""
 
-
-if ($Application) {
-    $ApplicationText = ("{0}: {1}" -f ($Messages."Application", $Application))
+if (-not (Test-Path -Path $PSScriptRoot\advfirewall-notification-hide.xml)) {
+    [System.Collections.ArrayList] $Applications = @()
+    [System.Collections.ArrayList] $Services = @()
+    $HiddenEvents = @{
+        "Services" = $Services
+        "Applications" = $Applications
+    }
+    $HiddenEvents |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+    $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+} else {
+    $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
 }
 
 if ($Services) {
     $ServicesText = ("{0}: {1}" -f ($Messages."Services", $Services))
+    if (-not $HiddenEvents.Services.Contains($Services)) {
+        $HiddenEvents.Services.Add($Services)
+    } else {
+        $Hidden = $true
+    }
 }
 
-Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
-           -Duration short -Audio Default -BindingTemplate ToastGeneric `
-           -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
-           -DestAddress ("{0}: {1}" -f ($Messages."Address", $DestAddress)) `
-           -DestPort ("{0}: {1}" -f ($Messages."Port", $DestPort)) `
-           -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
-           -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
-           -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
-           -Log $Log
+if ($Application) {
+    $ApplicationText = ("{0}: {1}" -f ($Messages."Application", $Application))
+    if (-not $HiddenEvents.Applications.Contains($Application) -and -not $Services) {
+    } else {
+        $HiddenEvents.Applications.Add($Application)
+        $Hidden = $true
+    }
+}
+
+if (-not $Hidden) {
+    Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
+               -Duration short -Audio Default -BindingTemplate ToastGeneric `
+               -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
+               -DestAddress ("{0}: {1}" -f ($Messages."Address", $DestAddress)) `
+               -DestPort ("{0}: {1}" -f ($Messages."Port", $DestPort)) `
+               -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
+               -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
+               -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
+               -Log $Log
+}
 
 ########
 

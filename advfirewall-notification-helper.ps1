@@ -6,6 +6,10 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
+if ($psISE) {
+    [string] $PSScriptRoot = "C:\Portable\advfirewall"
+}
+
 # Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
@@ -21,20 +25,43 @@ if ($args) {
         $Arguments = ($Arguments -split "=")
         $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
         $Event = $Event -split ","
-        if ($Event[2]) {
-            $Services = $Event[2] -replace "`"", ""
+        if (-not (Test-Path -Path $PSScriptRoot\advfirewall-notification-hide.xml)) {
+            [System.Collections.ArrayList] $Applications = @()
+            [System.Collections.ArrayList] $Services = @()
+            $HiddenEvents = @{
+                "Services" = $Services
+                "Applications" = $Applications
+            }
+            $HiddenEvents |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+            $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+        } else {
+            $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
         }
-        $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Application) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        if ($Event[2]) {
+            $Hidden = $Event[2] -replace "`"", ""
+            if (-not $HiddenEvents.Services.Contains($Hidden)) {
+                $HiddenEvents.Services.Add($Hidden)
+            }
+        } else {
+            $Hidden =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
+            if (-not $HiddenEvents.Applications.Contains($Hidden)) {
+                $HiddenEvents.Applications.Add($Hidden)
+            }
+        }
+        $HiddenEvents | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+
+        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Hidden) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:allow")) {
         $Arguments = ($Arguments -split "=")
         $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
         $Event = $Event -split ","
         if ($Event[2]) {
-            $Services = $Event[2] -replace "`"", ""
+            $Allow = $Event[2] -replace "`"", ""
+        } else {
+            $Allow =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
         }
-        $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Application) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+
+        Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     }
 }
 
