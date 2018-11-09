@@ -95,7 +95,7 @@ function Show-Toast {
     }
     process {
         $XmlToast = @"
-            <toast launch="advfirewall:choice" activationType="protocol" $($XmlDuration)>
+            <toast launch="advfirewall:choice=$($Log):pid=$($PID)" activationType="protocol" $($XmlDuration)>
                 <visual>
                     <binding template="$($BindingTemplate)">
                         $($XmlText)
@@ -118,11 +118,12 @@ function Show-Toast {
                 <actions>
                     <action activationType="protocol" content="$($Messages."Allow")" arguments="advfirewall:allow=$($Log)" />
                     <action activationType="protocol" content="$($Messages."Hide")" arguments="advfirewall:hide=$($Log)" />
-                    <action activationType="protocol" content="$($Messages."Close")" arguments="advfirewall:pid=$($PID)" />
+                    
                 </actions>
                 $($XmlAudio)
             </toast>
 "@
+        # <action activationType="protocol" content="$($Messages."Close")" arguments="advfirewall:pid=$($PID)" />
         $XmlDocument = New-Object -TypeName Windows.Data.Xml.Dom.XmlDocument -Verbose
         $XmlDocument.LoadXml($XmlToast)
         $ToastNotification = New-Object -TypeName Windows.UI.Notifications.ToastNotification -ArgumentList $XmlDocument -Verbose

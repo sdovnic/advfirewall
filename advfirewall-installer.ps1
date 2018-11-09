@@ -128,7 +128,7 @@ if ($args.Length -gt 0) {
 
         if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -ErrorAction SilentlyContinue)) {
             New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Verbose
-            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" -Value "$(Join-Path -Path $PSHOME -ChildPath "powershell.exe") -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" -Value "$(Join-Path -Path $PSHOME -ChildPath "powershell.exe") -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
         }
         $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
         if (-not ($env:USERNAME -eq $Username)) {
