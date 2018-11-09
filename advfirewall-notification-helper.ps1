@@ -1,4 +1,4 @@
-﻿if ($PSVersionTable.PSVersion.Major -lt 3) {
+if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
 
@@ -56,12 +56,17 @@ if ($args) {
         $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
         $Event = $Event -split ","
         if ($Event[2]) {
-            $Allow = $Event[2] -replace "`"", ""
+            $Service = $Event[2] -replace "`"", ""
         } else {
-            $Allow =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
+            $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
         }
 
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        $Direction = "out"
+
+        if (-not $Service) {
+            & powershell -File "$PSScriptRoot\advfirewall-add-rule.ps1" $Direction $Application
+            Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        }
     }
 }
 
