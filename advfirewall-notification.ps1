@@ -1,4 +1,4 @@
-﻿#$Action = 'Write-Output "The watched file was changed"'
+#$Action = 'Write-Output "The watched file was changed"'
 $global:FileChanged = $false
 $VerbosePreference = "Continue"
 
@@ -11,14 +11,16 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 }
 
 if ($psISE) {
-    $PSScriptRoot = "C:\Portable\advfirewall"
+    $Path = "$env:ProgramData\advfirewall-master"
     Set-Location -Path $PSScriptRoot
-    Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages -FileName advfirewall-notification.psd1
+    Import-LocalizedData -BaseDirectory $Path\Locales -BindingVariable Messages -FileName advfirewall-notification.psd1
 } else {
-    Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
+    $Path = $PSScriptRoot
+    Import-LocalizedData -BaseDirectory $Path\Locales -BindingVariable Messages
+    
 }
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-DevicePathToDriveLetter)
+Import-Module -Name (Join-Path -Path $Path\Modules -ChildPath Convert-DevicePathToDriveLetter)
 
 #        [Parameter(Mandatory = $true)] [string] $Log,
 
@@ -155,7 +157,7 @@ function Wait-FileChange {
 
 ########
 
-$Log = (Get-Content -Path "C:\Portable\advfirewall\advfirewall-events.csv" -Tail 1)
+$Log = (Get-Content -Path "$Path\advfirewall-events.csv" -Tail 1)
 $Last = $Log -split ","
 $Log = [System.Net.WebUtility]::UrlEncode($Log)
 [hashtable] $Protocol = @{
@@ -207,33 +209,29 @@ $Application = Convert-DevicePathToDriveLetter -Path $Application
 
 [string] $DestAddress = $Last[10] -replace "`"", ""
 
-if (-not (Test-Path -Path $PSScriptRoot\advfirewall-notification-hide.xml)) {
+if (-not (Test-Path -Path $Path\advfirewall-notification-hide.xml)) {
     [System.Collections.ArrayList] $Applications = @()
     [System.Collections.ArrayList] $Services = @()
     $HiddenEvents = @{
         "Services" = $Services
         "Applications" = $Applications
     }
-    $HiddenEvents |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
-    $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+    $HiddenEvents |  Export-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
+    $HiddenEvents = Import-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
 } else {
-    $HiddenEvents = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
+    $HiddenEvents = Import-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
 }
 
 if ($Services) {
     $ServicesText = ("{0}: {1}" -f ($Messages."Services", $Services))
-    if (-not $HiddenEvents.Services.Contains($Services)) {
-        $HiddenEvents.Services.Add($Services)
-    } else {
+    if ($HiddenEvents.Services.Contains($Services)) {
         $Hidden = $true
     }
 }
 
 if ($Application) {
     $ApplicationText = ("{0}: {1}" -f ($Messages."Application", $Application))
-    if (-not $HiddenEvents.Applications.Contains($Application) -and -not $Services) {
-    } else {
-        $HiddenEvents.Applications.Add($Application)
+    if ($HiddenEvents.Applications.Contains($Application) -and -not $Services) {
         $Hidden = $true
     }
 }
@@ -257,8 +255,8 @@ if (-not $Hidden) {
     Unregister-Event -SubscriptionId $onChange.Id
 }
 
-$File = "C:\ProgramData\advfirewall\advfirewall-events.csv"
-$File = "C:\Portable\advfirewall\advfirewall-events.csv"
+$File = "$Path\advfirewall-events.csv"
+#$File = "C:\Portable\advfirewall\advfirewall-events.csv"
 
 
 while ($true) {
