@@ -6,7 +6,13 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+$Administrator = (
+        [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    ).IsInRole(
+        [Security.Principal.WindowsBuiltInRole] "Administrator"
+    )
+
+if (-not $Administrator) {
     [bool] $Elevate = $false
     if ($args.Length -gt 1) {
         if ($args[1].Contains("logger")) {
@@ -24,11 +30,11 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     }
 }
 
-Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
+Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages -Verbose
 
-Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
-Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Add-ShortCut)
-Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Remove-ShortCut)
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon) -Verbose
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Add-ShortCut) -Verbose
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Remove-ShortCut) -Verbose
 
 if ($args.Length -gt 0) {
     [string] $TaskName = "advfirewall-log-event"
@@ -115,7 +121,8 @@ if ($args.Length -gt 0) {
 
         if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -ErrorAction SilentlyContinue)) {
             New-Item -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Verbose
-            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Name "(Default)" -Value "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\DefaultIcon" -Name "(Default)" `
+                             -Value "$env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Verbose
         }
 
         if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell" -ErrorAction SilentlyContinue)) {
@@ -128,7 +135,8 @@ if ($args.Length -gt 0) {
 
         if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -ErrorAction SilentlyContinue)) {
             New-Item -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Verbose
-            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" -Value "$(Join-Path -Path $PSHOME -ChildPath "powershell.exe") -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
+            Set-ItemProperty -Path "HKCU:\Software\Classes\advfirewall\shell\open\command" -Name "(Default)" `
+                             -Value "$(Join-Path -Path $PSHOME -ChildPath "powershell.exe") -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`" `"%1`"" -Verbose
         }
         $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
         if (-not ($env:USERNAME -eq $Username)) {
@@ -158,8 +166,12 @@ if ($args.Length -gt 0) {
                 $TaskTemplate = $TaskTemplate -replace "<Command>(.*)</Command>", "<Command>$TaskCommand</Command>"
                 $TaskTemplate = $TaskTemplate -replace "<Arguments>(.*)</Arguments>", "<Arguments>$TaskArguments</Arguments>"
                 Set-Content -Path $TaskFile -Value $TaskTemplate
-                Start-Process -FilePath "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
-                Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
+                Start-Process -FilePath "schtasks" `
+                              -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") `
+                              -WindowStyle Hidden -Wait
+                Start-Process -FilePath "auditpol" `
+                              -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") `
+                              -WindowStyle Hidden
                 Remove-Item -Path $TaskFile
             }
         } else {
@@ -173,8 +185,12 @@ if ($args.Length -gt 0) {
                 $TaskTemplate = $TaskTemplate -replace "<Command>(.*)</Command>", "<Command>$TaskCommand</Command>"
                 $TaskTemplate = $TaskTemplate -replace "<Arguments>(.*)</Arguments>", "<Arguments>$TaskArguments</Arguments>"
                 Set-Content -Path $TaskFile -Value $TaskTemplate
-                Start-Process -FilePath "schtasks" -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") -WindowStyle Hidden -Wait
-                Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") -WindowStyle Hidden
+                Start-Process -FilePath "schtasks" `
+                              -ArgumentList ("/Create", "/TN `"\$TaskName`"", "/XML `"$PSScriptRoot\$TaskName.xml`"") `
+                              -WindowStyle Hidden -Wait
+                Start-Process -FilePath "auditpol" `
+                              -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:enable") `
+                              -WindowStyle Hidden
                 Remove-Item -Path $TaskFile
             }
         }
@@ -222,7 +238,9 @@ if ($args.Length -gt 0) {
                 if (Get-Command -Name Get-ScheduledTask -ErrorAction SilentlyContinue) {
                     if (Get-ScheduledTask -TaskName $TaskName -TaskPath "\" -ErrorAction SilentlyContinue) {
                         Unregister-ScheduledTask -TaskName $TaskName -TaskPath "\" -Confirm:$False
-                        Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
+                        Start-Process -FilePath "auditpol" `
+                                      -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") `
+                                      -WindowStyle Hidden
                     }
                 } else {
                     Write-Warning -Message $Messages."Get-ScheduledTask not supported, using Schtasks."
@@ -230,7 +248,9 @@ if ($args.Length -gt 0) {
                     if ($Query.Contains($TaskName)) {
                         [array] $ArgumentList = @("/Delete", "/TN `"\$TaskName`"", "/F")
                         Start-Process -FilePath "schtasks" -ArgumentList $ArgumentList -WindowStyle Hidden
-                        Start-Process -FilePath "auditpol" -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") -WindowStyle Hidden
+                        Start-Process -FilePath "auditpol" `
+                                      -ArgumentList ("/set", "/subcategory:{0CCE9226-69AE-11D9-BED3-505054503030}", "/failure:disable") `
+                                      -WindowStyle Hidden
                     }
                 }
                 $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
@@ -249,9 +269,12 @@ if ($args.Length -gt 0) {
                 )
             }
         } else {
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule"))
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule"))
-            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause"))
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) `
+                            -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule"))
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) `
+                            -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule"))
+            Remove-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) `
+                            -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause"))
             Add-Type -AssemblyName System.Windows.Forms
             Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Send to Windows Firewall removed." `
                          -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
@@ -262,19 +285,22 @@ if ($args.Length -gt 0) {
         }
     }
 } else {
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule")) `
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) `
+                 -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Outgoing Rule")) `
                  -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" out" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
                  -Description $Messages."Adds an Outgoing Rule to the Windows Firewall."
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule")) `
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("SendTo")) `
+                 -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall create Incoming Rule")) `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-add-rule.ps1`" in" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `
                  -WorkingDirectory $PSScriptRoot -WindowStyle Minimized `
                  -Description $Messages."Adds an Incoming Rule to the Windows Firewall."
-    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause")) `
+    Add-ShortCut -Link (Join-Path -Path ([environment]::GetFolderPath("StartMenu")) `
+                 -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Pause")) `
     			 -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
     			 -Arguments "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-pause.ps1`"" `
                  -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,0" `

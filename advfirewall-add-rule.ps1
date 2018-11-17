@@ -6,7 +6,13 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+$Administrator = (
+        [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    ).IsInRole(
+        [Security.Principal.WindowsBuiltInRole] "Administrator"
+    )
+
+if (-not $Administrator) {
     Start-Process -FilePath "powershell" -WindowStyle Hidden -WorkingDirectory $PSScriptRoot -Verb runAs `
                   -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File $PSCommandPath $args"
     return

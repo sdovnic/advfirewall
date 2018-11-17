@@ -6,10 +6,6 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
-if ($psISE) {
-    [string] $PSScriptRoot = "C:\Portable\advfirewall"
-}
-
 # Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
@@ -20,7 +16,8 @@ if ($args) {
     if ($Arguments.Contains("advfirewall:pid")) {
         $Id = ($Arguments -split "=")[-1]
         Stop-Process -Id $Id -Verbose
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Advanced Firewall Notifications are now disabled.") -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Advanced Firewall Notifications are now disabled.") `
+                     -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:hide")) {
         $Arguments = ($Arguments -split "=")
         $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
@@ -50,7 +47,8 @@ if ($args) {
         }
         $HiddenEvents | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-hide.xml -Verbose
 
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Hidden) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Hidden) `
+                     -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:allow")) {
         $Arguments = ($Arguments -split "=")
         $Event = [System.Net.WebUtility]::UrlDecode($Arguments[1])
@@ -65,7 +63,8 @@ if ($args) {
 
         if (-not $Service) {
             & powershell -File "$PSScriptRoot\advfirewall-add-rule.ps1" $Direction $Application
-            Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
+            Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) `
+                         -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
         }
     }
 }

@@ -6,7 +6,14 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+
+$Administrator = (
+        [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    ).IsInRole(
+        [Security.Principal.WindowsBuiltInRole] "Administrator"
+    )
+
+if (-not $Administrator) {
     Start-Process -FilePath "powershell" -WindowStyle Hidden -WorkingDirectory $PSScriptRoot -Verb runAs `
                   -ArgumentList "-ExecutionPolicy Bypass -File $PSCommandPath $args"
     return
@@ -22,7 +29,9 @@ if (Get-Command -Name Get-NetFirewallRule -ErrorAction SilentlyContinue) {
                            -All
 } else {
     Write-Warning -Message $Messages."Get-NetFirewallRule not supported, using Netsh."
-    Start-Process -FilePath "netsh" -ArgumentList ("advfirewall", "set", "allprofiles", "firewallpolicy", "allowinbound,allowoutbound") -WindowStyle Hidden -Wait
+    Start-Process -FilePath "netsh" `
+                  -ArgumentList ("advfirewall", "set", "allprofiles", "firewallpolicy", "allowinbound,allowoutbound") `
+                  -WindowStyle Hidden -Wait
 }
 
 [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
@@ -38,7 +47,9 @@ if ($Result -eq "OK") {
                                -All
     } else {
         Write-Warning -Message $Messages."Get-NetFirewallRule not supported, using Netsh."
-        Start-Process -FilePath "netsh" -ArgumentList ("advfirewall", "set", "allprofiles", "firewallpolicy", "blockinbound,blockoutbound") -WindowStyle Hidden -Wait
+        Start-Process -FilePath "netsh" `
+                      -ArgumentList ("advfirewall", "set", "allprofiles", "firewallpolicy", "blockinbound,blockoutbound") `
+                      -WindowStyle Hidden -Wait
     }
     Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall turned back on." `
                  -TipIcon "Info" -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"

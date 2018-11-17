@@ -1,4 +1,3 @@
-#$Action = 'Write-Output "The watched file was changed"'
 $global:FileChanged = $false
 $VerbosePreference = "Continue"
 
@@ -20,11 +19,12 @@ if ($psISE) {
     
 }
 
-Import-Module -Name (Join-Path -Path $Path\Modules -ChildPath Convert-DevicePathToDriveLetter)
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-DevicePathToDriveLetter)
 
 #        [Parameter(Mandatory = $true)] [string] $Log,
 
 function Show-Toast {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)] $Log,
         [Parameter(Mandatory = $true)] $DirectionName,
@@ -72,7 +72,8 @@ function Show-Toast {
     )
     begin {
         # $ApplicationId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
-        $ApplicationId = 'Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI'
+        $ApplicationId = 'Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI' # 1803
+        $ApplicationId = (Get-StartApps | Where-Object -FilterScript { $_.AppID -match 'SecHealthUI' }).AppID
         [void] [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
         [void] [Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime]
         [void] [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
@@ -134,7 +135,10 @@ function Show-Toast {
     }
 }
 
+#$Action = 'Write-Output "The watched file was changed"'
+
 function Wait-FileChange {
+    [CmdletBinding()]
     param(
         [string]$File,
         [string]$Action
@@ -147,10 +151,10 @@ function Wait-FileChange {
         IncludeSubdirectories = $false
         EnableRaisingEvents = $true
     }
-    $onChange = Register-ObjectEvent $Watcher Changed -Action {$global:FileChanged = $true}
+    $onChange = Register-ObjectEvent $Watcher Changed -Action {$global:FileChanged = $true} -Verbose
 
     while ($global:FileChanged -eq $false){
-        Start-Sleep -Milliseconds 100
+        Start-Sleep -Milliseconds 100 -Verbose
     }
 
     #& $ScriptBlock
@@ -237,6 +241,8 @@ if ($Application) {
 }
 
 if (-not $Hidden) {
+    Write-Verbose -Message "Show Toast"
+
     Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
                -Duration short -Audio Default -BindingTemplate ToastGeneric `
                -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
@@ -245,20 +251,20 @@ if (-not $Hidden) {
                -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
                -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
                -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
-               -Log $Log
+               -Log $Log -Verbose
 }
 
 ########
 
     $global:FileChanged = $false
 
-    Unregister-Event -SubscriptionId $onChange.Id
+    Unregister-Event -SubscriptionId $onChange.Id -Verbose
 }
 
-$File = "$Path\advfirewall-events.csv"
-#$File = "C:\Portable\advfirewall\advfirewall-events.csv"
+$File = "$PSScriptRoot\advfirewall-events.csv"
 
-
+# Main Loop
 while ($true) {
-    Wait-FileChange -File $File #-Action $Action
+    Wait-FileChange -File $File -Verbose
+    #-Action $Action
 }

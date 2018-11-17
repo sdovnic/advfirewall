@@ -15,6 +15,10 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
 
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
+}
+
 $Event = @{
     SystemTime = $SystemTime
     ThreadID = [int] $ThreadID
@@ -26,20 +30,26 @@ $Event = @{
     DestAddress = $DestAddress
     DestPort = $DestPort
     Protocol = $Protocol
-    Services = [string] (Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+    Services = [string] (
+        Get-WmiObject -Class Win32_Service -Filter "ProcessID LIKE $ProcessID" -ErrorAction SilentlyContinue | `
+        Select-Object -ExpandProperty Name
+    )
 }
 
 # Todo: Try {} Catch {}
 # Todo: $ErrorLog = (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-error.log")
 
 if ($PSVersionTable.PSVersion.Major -gt 2) {
-    Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject (New-Object -TypeName PsObject -Property $Event)
+    Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append `
+               -InputObject (New-Object -TypeName PsObject -Property $Event)
 } else {
     if (-not (Test-Path -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv"))) {
-        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") -InputObject (New-Object -TypeName PsObject -Property $Event)
+        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") `
+                   -InputObject (New-Object -TypeName PsObject -Property $Event)
         $Data = Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv")
     } else {
-        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") -NoTypeInformation -InputObject (New-Object -TypeName PsObject -Property $Event)
+        Export-Csv -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") `
+                   -NoTypeInformation -InputObject (New-Object -TypeName PsObject -Property $Event)
         $Data = Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events-temp.csv") | Select-Object -Last 1
     }
     Out-File -FilePath (Join-Path -Path $PSScriptRoot -ChildPath "advfirewall-events.csv") -Append -InputObject $Data
@@ -69,22 +79,3 @@ foreach ($AutoAllowService in $AutoAllowServices.GetEnumerator()) {
         }
     }
 }
-
-<#
-if ($Event.Services -match "wuauserv") {
-    if ((Get-WmiObject -Class Win32_OperatingSystem).Caption -match "Windows 10") {
-        $Name = "Windows Update {0}" -f $Event.DestPort
-        if (-not (Get-NetFirewallRule -Name $Name -ErrorAction SilentlyContinue)) {
-            New-NetFirewallRule -Name $Name -DisplayName $Name -Enabled True `
-                                -Profile Any -Direction Outbound -Action Allow `
-                                -LocalAddress Any -RemoteAddress $Event.DestAddress `
-                                -Protocol "TCP" -LocalPort Any -RemotePort $Event.DestPort `
-                                -Program "%SystemRoot%\System32\svchost.exe"
-        } else {
-            [array] $RuleRemoteAddress = (Get-NetFirewallRule -Name $Name | Get-NetFirewallAddressFilter).RemoteAddress
-            [array] $RemoteAddress = ($RuleRemoteAddress) + $Event.DestAddress
-            Set-NetFirewallRule -Name $Name -RemoteAddress $RemoteAddress
-        }
-    }
-}
-#>
