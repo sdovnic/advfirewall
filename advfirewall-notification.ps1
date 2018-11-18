@@ -9,19 +9,18 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
-if ($psISE) {
-    $Path = "$env:ProgramData\advfirewall-master"
-    Set-Location -Path $PSScriptRoot
-    Import-LocalizedData -BaseDirectory $Path\Locales -BindingVariable Messages -FileName advfirewall-notification.psd1
-} else {
-    $Path = $PSScriptRoot
-    Import-LocalizedData -BaseDirectory $Path\Locales -BindingVariable Messages
-    
-}
+Start-Transcript -Path $PSScriptRoot\advfirewall-notification.log
+
+Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-DevicePathToDriveLetter)
 
-#        [Parameter(Mandatory = $true)] [string] $Log,
+if (Test-Path -Path $PSScriptRoot\advfirewall-notification.pid -ErrorAction SilentlyContinue) {
+    Stop-Process -Id (Get-Content -Path $PSScriptRoot\advfirewall-notification.pid -First 1) -ErrorAction SilentlyContinue -Verbose
+}
+$PID | Set-Content -Path $PSScriptRoot\advfirewall-notification.pid -Verbose
+
+$Host.UI.RawUI.WindowTitle = "Windows Firewall Notifications"
 
 function Show-Toast {
     [CmdletBinding()]
@@ -57,7 +56,7 @@ function Show-Toast {
             'Looping.Call8',
             'Looping.Call9',
             'Looping.Call10'
-        )] [String] $Audio = 'Default',
+        )] [String] $Audio,
         [Parameter(Mandatory = $false)] [ValidateSet(
             "ToastImageAndText01",
             "ToastImageAndText02",
@@ -71,8 +70,6 @@ function Show-Toast {
         )] [string] $BindingTemplate = "ToastGeneric"
     )
     begin {
-        # $ApplicationId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
-        $ApplicationId = 'Microsoft.Windows.SecHealthUI_cw5n1h2txyewy!SecHealthUI' # 1803
         $ApplicationId = (Get-StartApps | Where-Object -FilterScript { $_.AppID -match 'SecHealthUI' }).AppID
         [void] [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
         [void] [Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime]
@@ -85,20 +82,23 @@ function Show-Toast {
             $XmlText = $XmlText + ("<text id=`"{0}`">{1}</text>" -f ($index, $TextItem))
         }
         if ($Audio) {
-            $Index = $Index + 1
             $XmlAudio = ("<audio src=`"ms-winsoundevent:Notification.{0}`" loop=`"false`" />" -f $Audio)
+        } else {
+            $XmlAudio = "<audio silent=`"true`" />"
+            # $XmlAudio = ("<audio src=`"ms-winsoundevent:Notification.{0}`" loop=`"false`" />" -f $Audio)
         }
-        # $Image = "file:///C:\Windows\SystemApps\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy\Assets\Square71x71Logo.contrast-black_scale-400.png"
-        $Image = "file:///C:\Program Files\Windows Defender\Defendericon.png"
+        $ImagePath = ("{0}\SystemApps\Microsoft.Windows.SecHealthUI_cw5n1h2txyewy\Assets\Square71x71Logo.contrast-black_scale-400.png" -f $env:windir)
+        if (Test-Path -Path $ImagePath -ErrorAction SilentlyContinue) {
+            $Image = ("file:///{0}" -f $ImagePath)
+        }
         foreach ($ImageItem in $Image) {
             $Index = $Index + 1
             $XmlImage = ("<image id=`"{0}`" hint-crop=`"none`" placement=`"appLogoOverride`" src=`"{1}`"/>" -f ($Index, $ImageItem))
         }
-        
     }
     process {
         $XmlToast = @"
-            <toast launch="advfirewall:choice=$($Log):pid=$($PID)" activationType="protocol" $($XmlDuration)>
+            <toast launch="advfirewall:settings" activationType="protocol" $($XmlDuration)>
                 <visual>
                     <binding template="$($BindingTemplate)">
                         $($XmlText)
@@ -115,18 +115,19 @@ function Show-Toast {
                                 <text hint-style="captionSubtle" hint-align="right">$($ProcessId)</text>
                                 <text hint-style="captionSubtle" hint-align="right">$($ThreadId)</text>
                             </subgroup>
-                        </group>     
+                        </group>
                     </binding>
                 </visual>
                 <actions>
                     <action activationType="protocol" content="$($Messages."Allow")" arguments="advfirewall:allow=$($Log)" />
                     <action activationType="protocol" content="$($Messages."Hide")" arguments="advfirewall:hide=$($Log)" />
+                    <action activationType="protocol" content="$($Messages."Settings")" arguments="advfirewall:settings" />
                     
                 </actions>
                 $($XmlAudio)
             </toast>
 "@
-        # <action activationType="protocol" content="$($Messages."Close")" arguments="advfirewall:pid=$($PID)" />
+        # <action activationType="protocol" content="$($Messages."Stop")" arguments="advfirewall:stop=$($PID)" />
         $XmlDocument = New-Object -TypeName Windows.Data.Xml.Dom.XmlDocument -Verbose
         $XmlDocument.LoadXml($XmlToast)
         $ToastNotification = New-Object -TypeName Windows.UI.Notifications.ToastNotification -ArgumentList $XmlDocument -Verbose
@@ -135,33 +136,24 @@ function Show-Toast {
     }
 }
 
-#$Action = 'Write-Output "The watched file was changed"'
-
 function Wait-FileChange {
     [CmdletBinding()]
     param(
-        [string]$File,
-        [string]$Action
+        [string] $File
     )
     $FilePath = Split-Path $File -Parent
     $FileName = Split-Path $File -Leaf
-    #$ScriptBlock = [scriptblock]::Create($Action)
 
     $Watcher = New-Object IO.FileSystemWatcher $FilePath, $FileName -Property @{ 
         IncludeSubdirectories = $false
         EnableRaisingEvents = $true
     }
     $onChange = Register-ObjectEvent $Watcher Changed -Action {$global:FileChanged = $true} -Verbose
-
     while ($global:FileChanged -eq $false){
         Start-Sleep -Milliseconds 100 -Verbose
     }
-
-    #& $ScriptBlock
-
 ########
-
-$Log = (Get-Content -Path "$Path\advfirewall-events.csv" -Tail 1)
+$Log = (Get-Content -Path "$PSScriptRoot\advfirewall-events.csv" -Tail 1)
 $Last = $Log -split ","
 $Log = [System.Net.WebUtility]::UrlEncode($Log)
 [hashtable] $Protocol = @{
@@ -186,78 +178,83 @@ $Direction = @{
     "%%14593" = $Messages."Outgoing";
     "%%14592" = $Messages."Incoming";
 }
-
 [int] $ProtocolNumber = $Last[0] -replace "`"", ""
 [string] $ProtocolName = ($Protocol[$ProtocolNumber])
-
 [int] $ProcessId = $Last[1] -replace "`"", ""
-
 [string] $Services = $Last[2] -replace "`"", ""
-
 [int] $SourcePort = $Last[3] -replace "`"", ""
-
 [string] $DirectionIdentifier = $Last[4] -replace "`"", ""
 [string] $DirectionName = $Direction[$DirectionIdentifier]
-
 [int] $DestPort = $Last[5] -replace "`"", ""
-
 [string] $SourceAddress = $Last[6] -replace "`"", ""
-
 [string] $Application = $Last[7] -replace "`"", ""
-#[string] $Executable = ($Last[7] -split "\\")[-1]
 $Application = Convert-DevicePathToDriveLetter -Path $Application
-
 [string] $SystemTime = $Last[8] -replace "`"", ""
-
 [int] $ThreadId = $Last[9] -replace "`"", ""
-
 [string] $DestAddress = $Last[10] -replace "`"", ""
-
-if (-not (Test-Path -Path $Path\advfirewall-notification-hide.xml)) {
+if (-not (Test-Path -Path $PSScriptRoot\advfirewall-notification-settings.xml)) {
     [System.Collections.ArrayList] $Applications = @()
     [System.Collections.ArrayList] $Services = @()
-    $HiddenEvents = @{
-        "Services" = $Services
-        "Applications" = $Applications
+    $Settings = @{
+        "Audio" = "Default"
+        "Hidden" = @{
+            "Services" = $Services
+            "Applications" = $Applications
+        }
     }
-    $HiddenEvents |  Export-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
-    $HiddenEvents = Import-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
+    $Settings |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
+    $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
 } else {
-    $HiddenEvents = Import-Clixml -Path $Path\advfirewall-notification-hide.xml -Verbose
+    $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
 }
-
 if ($Services) {
     $ServicesText = ("{0}: {1}" -f ($Messages."Services", $Services))
-    if ($HiddenEvents.Services.Contains($Services)) {
+    if ($Settings.Hidden.Services.Contains($Services)) {
         $Hidden = $true
     }
 }
-
 if ($Application) {
     $ApplicationText = ("{0}: {1}" -f ($Messages."Application", $Application))
-    if ($HiddenEvents.Applications.Contains($Application) -and -not $Services) {
+    if ($Settings.Hidden.Applications.Contains($Application) -and -not $Services) {
         $Hidden = $true
     }
 }
-
 if (-not $Hidden) {
     Write-Verbose -Message "Show Toast"
 
-    Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
-               -Duration short -Audio Default -BindingTemplate ToastGeneric `
-               -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
-               -DestAddress ("{0}: {1}" -f ($Messages."Address", $DestAddress)) `
-               -DestPort ("{0}: {1}" -f ($Messages."Port", $DestPort)) `
-               -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
-               -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
-               -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
-               -Log $Log -Verbose
+    if (Test-Path -Path $PSScriptRoot\advfirewall-notification-settings.xml) {
+        $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml
+    }
+
+    if ($Settings.Audio) {
+        Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
+                   -Duration short `
+                   -BindingTemplate ToastGeneric `
+                   -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
+                   -DestAddress ("{0}: {1}" -f ($Messages."Address", $DestAddress)) `
+                   -DestPort ("{0}: {1}" -f ($Messages."Port", $DestPort)) `
+                   -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
+                   -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
+                   -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
+                   -Log $Log `
+                   -Audio $Settings.Audio `
+                   -Verbose 
+    } else {
+        Show-Toast -Text $Messages."Network connection rejected", $ApplicationText, $ServicesText `
+                   -Duration short `
+                   -BindingTemplate ToastGeneric `
+                   -DirectionName ("{0}: {1}" -f ($Messages."Direction", $DirectionName)) `
+                   -DestAddress ("{0}: {1}" -f ($Messages."Address", $DestAddress)) `
+                   -DestPort ("{0}: {1}" -f ($Messages."Port", $DestPort)) `
+                   -ProcessId ("{0}: {1}" -f ($Messages."Process", $ProcessId)) `
+                   -ThreadId ("{0}: {1}" -f ($Messages."Thread", $ThreadId)) `
+                   -Protocol ("{0}: {1}" -f ($Messages."Protocol", $ProtocolName)) `
+                   -Log $Log `
+                   -Verbose 
+    }
 }
-
 ########
-
     $global:FileChanged = $false
-
     Unregister-Event -SubscriptionId $onChange.Id -Verbose
 }
 
@@ -266,5 +263,6 @@ $File = "$PSScriptRoot\advfirewall-events.csv"
 # Main Loop
 while ($true) {
     Wait-FileChange -File $File -Verbose
-    #-Action $Action
 }
+
+Stop-Transcript

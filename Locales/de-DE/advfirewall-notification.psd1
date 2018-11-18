@@ -15,10 +15,12 @@
     "Windows Firewall Event Log" = "Windows Firewall Ereignisprotokoll"
     "Allow" = "Freigeben"
     "Hide" = "Ausblenden"
-    "Close" = "Beenden"
+    "Stop" = "Beenden"
+    "Settings" = "Einstellungen"
     "Network connection rejected" = "Netzwerkverbindung abgelehnt"
     "Address" = "Adresse"
     "Port" = "Port"
     "Process" = "Prozess"
     "Thread" = "Thread"
+    "Windows Firewall Notifications already running." = "Windows Firewall Benachrichtigungen laufen bereits."
 }

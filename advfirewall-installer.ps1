@@ -149,6 +149,17 @@ if ($args.Length -gt 0) {
                      -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification.ps1`"" `
                      -IconLocation "%SystemRoot%\system32\miguiresource.dll,0" `
                      -Description $Messages."Notification for Windows Firewall events."
+        $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
+        if (-not ($env:USERNAME -eq $Username)) {
+            $Path = [Environment]::GetFolderPath("Programs") -replace $env:USERNAME, $Username
+        } else {
+            $Path = [Environment]::GetFolderPath("Programs")
+        }
+        Add-ShortCut -Link (Join-Path -Path $Path -ChildPath ("{0}.lnk" -f $Messages."Windows Firewall Notification")) `
+                     -TargetPath (Join-Path -Path $PSHOME -ChildPath "powershell.exe") `
+                     -Arguments "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\advfirewall-notification-helper.ps1`"" `
+                     -IconLocation "%SystemRoot%\system32\FirewallControlPanel.dll,2" `
+                     -Description $Messages."Notification for Windows Firewall events."
         Add-Type -AssemblyName System.Windows.Forms
         Show-Balloon -TipTitle "Windows Firewall" -TipText $Messages."Windows Firewall Notification installed." `
                      -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"

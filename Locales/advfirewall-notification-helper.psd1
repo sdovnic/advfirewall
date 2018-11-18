@@ -1,0 +1,4 @@
+@{
+    "Incoming" = "Incoming"
+    "Outgoing" = "Outgoing"
+}
