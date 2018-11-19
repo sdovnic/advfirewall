@@ -6,6 +6,8 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
+Start-Transcript -Path $PSScriptRoot\advfirewall-add-rule.log
+
 $Administrator = (
         [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
     ).IsInRole(
@@ -75,3 +77,5 @@ if ($args.Length -gt 1) {
     Show-Balloon -TipTitle "Windows Firewall" -TipText $TipTexts[$dir] `
                  -TipIcon $TipIcon -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
 }
+
+Stop-Transcript

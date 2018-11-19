@@ -1,4 +1,8 @@
 function Show-Balloon {
+    <#
+        .SYNOPSIS
+            Show a Balloon.
+    #>
     [CmdletBinding()]
     param(
         [parameter(Mandatory=$true)] [string] $TipTitle,

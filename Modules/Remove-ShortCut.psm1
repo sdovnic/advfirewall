@@ -1,4 +1,8 @@
-function Remove-ShortCut {
+function Remove-Shortcut {
+    <#
+        .SYNOPSIS
+            Remove a Shortcut.
+    #>
     [CmdletBinding()]
     param(
         [parameter(Mandatory=$true)] [string] $Link

@@ -1,4 +1,8 @@
 function Add-ShortCut {
+    <#
+        .SYNOPSIS
+            Add a Shortcut.
+    #>
     [CmdletBinding()]
     param(
         [parameter(Mandatory=$true)] [string] $Link,

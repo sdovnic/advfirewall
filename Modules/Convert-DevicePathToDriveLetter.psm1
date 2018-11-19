@@ -1,4 +1,8 @@
 function Convert-DevicePathToDriveLetter {
+    <#
+        .SYNOPSIS
+            Convert Device Path to Drive Letter.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)] $Path

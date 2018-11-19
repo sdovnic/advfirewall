@@ -1,4 +1,17 @@
 @{
     "Incoming" = "Incoming"
     "Outgoing" = "Outgoing"
+    "Stopped" = "Stopped"
+    "Stop Notifications" = "Stop Notifications"
+    "Already Stopped" = "Already Stopped"
+    "Started" = "Started"
+    "Start Notifications" = "Start Notifications"
+    "Set Audio" = "Set Audio"
+    "Set to" = "Set to"
+    "Silent" = "Silent"
+    "Unhide Applications" = "Unhide Applications"
+    "Unhide Services" = "Unhide Services"
+    "Windows Firewall Notification Settings" = "Windows Firewall Notification Settings"
+    "Notifications" = "Notifications"
+    "Close" = "Close"
 }

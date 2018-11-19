@@ -6,6 +6,8 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSCommandPath = $MyInvocation.MyCommand.Definition
 }
 
+Start-Transcript -Path $PSScriptRoot\advfirewall-installer.log
+
 $Administrator = (
         [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
     ).IsInRole(
@@ -106,6 +108,7 @@ if ($args.Length -gt 0) {
 </Task>
 '@
     if ($args[0].Contains("local")) {
+        # Todo: Add local Installation to ProgramData
     } elseif ($args[0].Contains("notification")) {
         if (-not (Test-Path -Path "HKCU:\Software\Classes\advfirewall" -ErrorAction SilentlyContinue)) {
             New-Item -Path "HKCU:\Software\Classes\advfirewall" -Verbose
@@ -226,11 +229,11 @@ if ($args.Length -gt 0) {
     } elseif ($args[0].Contains("remove")) {
         if ($args.Length -gt 1) {
             if ($args[1].Contains("local")) {
+                # Todo: Add a local Installation to ProgramData
             } elseif ($args[1].Contains("notification")) {
                 if (Test-Path -Path "HKCU:\Software\Classes\advfirewall" -ErrorAction SilentlyContinue) {
                     Remove-Item -Path "HKCU:\Software\Classes\advfirewall" -Recurse -Verbose
                 }
-                # Todo: Remove StartUp Link
                 $Username = Get-WMIObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty Username | Split-Path -Leaf
                 if (-not ($env:USERNAME -eq $Username)) {
                     $Path = [Environment]::GetFolderPath("StartUp") -replace $env:USERNAME, $Username
@@ -325,3 +328,5 @@ if ($args.Length -gt 0) {
         [System.Windows.Forms.MessageBoxIcon]::Information
     )
 }
+
+Stop-Transcript

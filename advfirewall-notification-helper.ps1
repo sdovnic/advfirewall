@@ -8,10 +8,11 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 Start-Transcript -Path $PSScriptRoot\advfirewall-notification-helper.log
 
-Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 # Todo: Add Translations
+Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
+Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-MessageBox)
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Convert-DevicePathToDriveLetter)
 
 if (-not (Test-Path -Path $PSScriptRoot\advfirewall-notification-settings.xml)) {
@@ -36,13 +37,17 @@ function Show-Form {
     
     $WindowsFirewallNotificationSettingsForm = New-Object system.Windows.Forms.Form
     $WindowsFirewallNotificationSettingsForm.ClientSize = '400,400'
-    $WindowsFirewallNotificationSettingsForm.text = "Windows Firewall Notification Settings"
+    $WindowsFirewallNotificationSettingsForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
+    $WindowsFirewallNotificationSettingsForm.MinimizeBox = $false
+    $WindowsFirewallNotificationSettingsForm.MaximizeBox = $false
+    $WindowsFirewallNotificationSettingsForm.SizeGripStyle = "Hide"
+    $WindowsFirewallNotificationSettingsForm.Text = $Messages."Windows Firewall Notification Settings"
     $WindowsFirewallNotificationSettingsForm.TopMost = $false
     $WindowsFirewallNotificationSettingsForm.Icon = [system.drawing.icon]::ExtractAssociatedIcon("$env:SystemRoot\system32\FirewallControlPanel.dll")
     
     $ComboBoxAudio = New-Object system.Windows.Forms.ComboBox
-    $ComboBoxAudio.width = 200
-    $ComboBoxAudio.height = 31
+    $ComboBoxAudio.Width = 200
+    $ComboBoxAudio.Height = 31
     @(
         '',
         'Default',
@@ -73,53 +78,53 @@ function Show-Form {
     ) | ForEach-Object -Process {
         [void] $ComboBoxAudio.Items.Add($_)
     }
-    $ComboBoxAudio.location = New-Object System.Drawing.Point(15,17)
+    $ComboBoxAudio.Location = New-Object System.Drawing.Point(15,17)
     $ComboBoxAudio.Font = 'Microsoft Sans Serif,10'
     if ($Settings.Audio) {
         $ComboBoxAudio.SelectedIndex = $ComboBoxAudio.FindStringExact($Settings.Audio)
     }
     
     $ButtonAudio = New-Object system.Windows.Forms.Button
-    $ButtonAudio.text = "Set Audio"
-    $ButtonAudio.width = 160
-    $ButtonAudio.height = 30
+    $ButtonAudio.Text = $Messages."Set Audio"
+    $ButtonAudio.Width = 160
+    $ButtonAudio.Height = 30
     $ButtonAudio.Anchor = 'top,right'
-    $ButtonAudio.location = New-Object System.Drawing.Point(229,15)
+    $ButtonAudio.Location = New-Object System.Drawing.Point(229,15)
     $ButtonAudio.Font = 'Microsoft Sans Serif,10'
     
     $ButtonUnhideApplications = New-Object system.Windows.Forms.Button
-    $ButtonUnhideApplications.text = "Unhide Applications"
-    $ButtonUnhideApplications.width = 372
-    $ButtonUnhideApplications.height = 30
-    $ButtonUnhideApplications.location = New-Object System.Drawing.Point(15,65)
+    $ButtonUnhideApplications.Text = $Messages."Unhide Applications"
+    $ButtonUnhideApplications.Width = 372
+    $ButtonUnhideApplications.Height = 30
+    $ButtonUnhideApplications.Location = New-Object System.Drawing.Point(15,65)
     $ButtonUnhideApplications.Font = 'Microsoft Sans Serif,10'
     
     $ButtonUnhideServices = New-Object system.Windows.Forms.Button
-    $ButtonUnhideServices.text = "Unhide Services"
-    $ButtonUnhideServices.width = 372
-    $ButtonUnhideServices.height = 30
-    $ButtonUnhideServices.location = New-Object System.Drawing.Point(15,114)
+    $ButtonUnhideServices.Text = $Messages."Unhide Services"
+    $ButtonUnhideServices.Width = 372
+    $ButtonUnhideServices.Height = 30
+    $ButtonUnhideServices.Location = New-Object System.Drawing.Point(15,114)
     $ButtonUnhideServices.Font = 'Microsoft Sans Serif,10'
     
     $ButtonStop = New-Object system.Windows.Forms.Button
-    $ButtonStop.text = "Stop Notifications"
-    $ButtonStop.width = 372
-    $ButtonStop.height = 30
-    $ButtonStop.location = New-Object System.Drawing.Point(15,162)
+    $ButtonStop.Text = $Messages."Stop Notifications"
+    $ButtonStop.Width = 372
+    $ButtonStop.Height = 30
+    $ButtonStop.Location = New-Object System.Drawing.Point(15,162)
     $ButtonStop.Font = 'Microsoft Sans Serif,10'
     
     $ButtonStart = New-Object system.Windows.Forms.Button
-    $ButtonStart.text = "Start Notifications"
-    $ButtonStart.width = 372
+    $ButtonStart.Text = $Messages."Start Notifications"
+    $ButtonStart.Width = 372
     $ButtonStart.height = 30
-    $ButtonStart.location = New-Object System.Drawing.Point(15,210)
+    $ButtonStart.Location = New-Object System.Drawing.Point(15,210)
     $ButtonStart.Font = 'Microsoft Sans Serif,10'
     
     $ButtonClose = New-Object system.Windows.Forms.Button
-    $ButtonClose.text = "Close"
-    $ButtonClose.width = 106
-    $ButtonClose.height = 30
-    $ButtonClose.location = New-Object System.Drawing.Point(280,358)
+    $ButtonClose.Text = $Messages."Close"
+    $ButtonClose.Width = 106
+    $ButtonClose.Height = 30
+    $ButtonClose.Location = New-Object System.Drawing.Point(280,358)
     $ButtonClose.Font = 'Microsoft Sans Serif,10'
     
     $WindowsFirewallNotificationSettingsForm.controls.AddRange(
@@ -140,23 +145,31 @@ function Show-Form {
     $ButtonUnhideApplications.Add_Click({
         ButtonUnhideApplicationsClick
     })
-    $ButtonUnhideServices.Add_Click({ ButtonUnhideServicesClick })
-    $ButtonStop.Add_Click({ ButtonStopClick })
-    $ButtonStart.Add_Click({ ButtonStartClick })
-    $ButtonClose.Add_Click({ ButtonCloseClick })
+    $ButtonUnhideServices.Add_Click({
+        ButtonUnhideServicesClick
+    })
+    $ButtonStop.Add_Click({
+        ButtonStopClick
+    })
+    $ButtonStart.Add_Click({
+        ButtonStartClick
+    })
+    $ButtonClose.Add_Click({
+        ButtonCloseClick
+    })
     
     function ButtonUnhideApplicationsClick {
         if ($Settings.Hidden.Applications) {
             $Selected = @()
             $Settings.Hidden.Applications | Out-GridView -PassThru | ForEach-Object -Process {
                 $Selected += $_
-                # Todo: Unhide Applications
             }
             if ($Selected) {
-                [System.Windows.Forms.MessageBox]::Show(($Selected -join ", "), "Unhided Applications")
+                # Todo: Unhide Applications
+                Show-MessageBox -Caption $Messages."Unhide Applications" -Text ($Selected -join ", ") -Buttons OK -Icon Information
             }
         } else {
-            [System.Windows.Forms.MessageBox]::Show("No Applications hidden.", "Unhided Applications")
+            Show-MessageBox -Caption $Messages."Unhide Applications" -Text $Messages."No Applications hidden." -Buttons OK -Icon Error
         }
     }
     function ButtonUnhideServicesClick {
@@ -164,35 +177,48 @@ function Show-Form {
             $Selected = @()
             $Settings.Hidden.Services | Out-GridView -PassThru | ForEach-Object -Process {
                 $Selected += $_
-                # Todo: Unhide Services
             }
             if ($Selected) {
-                [System.Windows.Forms.MessageBox]::Show(($Selected -join ", "), "Unhide Services")
+                # Todo: Unhide Services
+                Show-MessageBox -Caption $Messages."Unhide Services" -Text ($Selected -join ", ") -Buttons OK -Icon Information
             }
         } else {
-            [System.Windows.Forms.MessageBox]::Show("No Services hidden.", "Unhide Services")
+            Show-MessageBox -Caption $Messages."Unhide Services" -Text $Messages."No Services hidden." -Buttons OK -Icon Error
         }
     }
     function ButtonAudioClick {
-        # $ComboBoxAudio.SelectedItem
-        # [System.Windows.Forms.MessageBox]::Show($Settings.Audio, "Current")
         if ($ComboBoxAudio.SelectedItem) {
-            [System.Windows.Forms.MessageBox]::Show($ComboBoxAudio.SelectedItem, "Audio set to")
+            Show-MessageBox -Caption $Messages."Set to" -Text $ComboBoxAudio.SelectedItem -Buttons OK -Icon Information
             $Settings.Audio = $ComboBoxAudio.SelectedItem
             $Settings | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
         } else {
             $Settings.Audio = ""
-            [System.Windows.Forms.MessageBox]::Show("Silent", "Audio set to")
+            Show-MessageBox -Caption $Messages."Set to" -Text $Messages."Silent" -Buttons OK -Icon Information
         }
     }
     function ButtonStopClick {
         $CurrentPID = Get-Content -Path $PSScriptRoot\advfirewall-notification.pid -First 1 -Verbose
-        Stop-Process -Id $CurrentPID -Verbose
-        [System.Windows.Forms.MessageBox]::Show("Stopped", "Notifications")
+        if (Get-Process -Id $CurrentPID) {
+            Stop-Process -Id $CurrentPID -Verbose
+            Show-MessageBox -Caption $Messages."Notifications" -Text $Messages."Stopped" -Buttons OK -Icon Information
+        } else {
+            Show-MessageBox -Caption $Messages."Notifications" -Text $Messages."Already Stopped" -Buttons OK -Icon Error
+        }
     }
     function ButtonStartClick {
-        & powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "$PSScriptRoot\advfirewall-notification.ps1"
-        [System.Windows.Forms.MessageBox]::Show("Started", "Notifications")
+        $FilePath = "$env:SystemRoot\system32\WindowsPowerShell\v1.0\powershell.exe"
+        $ArgumentList = ("-WindowStyle", "Hidden", "-STA", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSScriptRoot\advfirewall-notification.ps1`"")
+        $CurrentPID = Get-Content -Path $PSScriptRoot\advfirewall-notification.pid -First 1 -Verbose
+        if (Get-Process -Id $CurrentPID) {
+            Stop-Process -Id $CurrentPID -Verbose
+        }
+        Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -PassThru -WindowStyle Hidden
+        Start-Sleep 1
+        $CurrentPID = Get-Content -Path $PSScriptRoot\advfirewall-notification.pid -First 1 -Verbose
+        if (Get-Process -Id $CurrentPID) {
+            Show-MessageBox -Caption $Messages."Notifications" -Text $Messages."Started" -Buttons OK -Icon Information
+        }
+        
     }
     function ButtonCloseClick {
         [void] $WindowsFirewallNotificationSettingsForm.Close()
@@ -240,13 +266,11 @@ if ($args) {
             $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
         }
 
-        # Todo: Get Direction
+        # Todo: Get correct Direction
         $Direction = "out"
 
         if (-not $Service) {
             & powershell -File "$PSScriptRoot\advfirewall-add-rule.ps1" $Direction $Application
-            Show-Balloon -TipTitle "Windows Firewall" -TipText ("{0} now allowed." -f $Allow) `
-                         -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
         }
     }
 } else {

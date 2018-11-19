@@ -1,4 +1,17 @@
 @{
     "Incoming" = "Eingehend"
     "Outgoing" = "Ausgehend"
+    "Stopped" = "Gestoppt"
+    "Stop Notifications" = "Benachrichtigungen stoppen"
+    "Already Stopped" = "Bereits gestoppt"
+    "Start Notifications" = "Benachrichtigungen starten"
+    "Started" = "Gestartet"
+    "Set Audio" = "Setze Ton"
+    "Set to" = "Ton eingstellt zu"
+    "Silent" = "Kein Ton"
+    "Unhide Applications" = "Ausblenden aufheben f$([char]0x00FC)r Anwendungen"
+    "Unhide Services" = "Ausblenden aufheben f$([char]0x00FC)r Dienste"
+    "Windows Firewall Notification Settings" = "Windows Firewall Benachrichtigungseinstellungen"
+    "Notifications" = "Benachrichtigungen"
+    "Close" = "Schlie$([char]0x00DF)en"
 }

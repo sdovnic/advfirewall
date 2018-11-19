@@ -1,6 +1,3 @@
-$global:FileChanged = $false
-$VerbosePreference = "Continue"
-
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     [string] $PSScriptRoot = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 }
@@ -10,6 +7,8 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 }
 
 Start-Transcript -Path $PSScriptRoot\advfirewall-notification.log
+
+$global:FileChanged = $false
 
 Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
@@ -127,7 +126,6 @@ function Show-Toast {
                 $($XmlAudio)
             </toast>
 "@
-        # <action activationType="protocol" content="$($Messages."Stop")" arguments="advfirewall:stop=$($PID)" />
         $XmlDocument = New-Object -TypeName Windows.Data.Xml.Dom.XmlDocument -Verbose
         $XmlDocument.LoadXml($XmlToast)
         $ToastNotification = New-Object -TypeName Windows.UI.Notifications.ToastNotification -ArgumentList $XmlDocument -Verbose
@@ -220,8 +218,6 @@ if ($Application) {
     }
 }
 if (-not $Hidden) {
-    Write-Verbose -Message "Show Toast"
-
     if (Test-Path -Path $PSScriptRoot\advfirewall-notification-settings.xml) {
         $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml
     }
@@ -258,11 +254,8 @@ if (-not $Hidden) {
     Unregister-Event -SubscriptionId $onChange.Id -Verbose
 }
 
-$File = "$PSScriptRoot\advfirewall-events.csv"
-
-# Main Loop
 while ($true) {
-    Wait-FileChange -File $File -Verbose
+    Wait-FileChange -File "$PSScriptRoot\advfirewall-events.csv" -Verbose
 }
 
 Stop-Transcript
