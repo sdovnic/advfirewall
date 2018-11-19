@@ -8,7 +8,6 @@ if ($PSVersionTable.PSVersion.Major -lt 3) {
 
 Start-Transcript -Path $PSScriptRoot\advfirewall-notification-helper.log
 
-# Todo: Add Translations
 Import-LocalizedData -BaseDirectory $PSScriptRoot\Locales -BindingVariable Messages
 
 Import-Module -Name (Join-Path -Path $PSScriptRoot\Modules -ChildPath Show-Balloon)
@@ -159,13 +158,17 @@ function Show-Form {
     })
     
     function ButtonUnhideApplicationsClick {
+        $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
         if ($Settings.Hidden.Applications) {
             $Selected = @()
-            $Settings.Hidden.Applications | Out-GridView -PassThru | ForEach-Object -Process {
+            $Settings.Hidden.Applications | Out-GridView -PassThru -Title $Messages."Select Applications to unhide" | ForEach-Object -Process {
                 $Selected += $_
             }
             if ($Selected) {
-                # Todo: Unhide Applications
+                foreach ($SelectedItem in $Selected) {
+                    $Settings.Hidden.Applications.Remove($SelectedItem)
+                }
+                $Settings |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
                 Show-MessageBox -Caption $Messages."Unhide Applications" -Text ($Selected -join ", ") -Buttons OK -Icon Information
             }
         } else {
@@ -173,13 +176,17 @@ function Show-Form {
         }
     }
     function ButtonUnhideServicesClick {
+        $Settings = Import-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
         if ($Settings.Hidden.Services) {
             $Selected = @()
-            $Settings.Hidden.Services | Out-GridView -PassThru | ForEach-Object -Process {
+            $Settings.Hidden.Services | Out-GridView -PassThru -Title $Messages."Select Services to unhide" | ForEach-Object -Process {
                 $Selected += $_
             }
             if ($Selected) {
-                # Todo: Unhide Services
+                foreach ($SelectedItem in $Selected) {
+                    $Settings.Hidden.Services.Remove($SelectedItem)
+                }
+                $Settings |  Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
                 Show-MessageBox -Caption $Messages."Unhide Services" -Text ($Selected -join ", ") -Buttons OK -Icon Information
             }
         } else {
@@ -207,7 +214,13 @@ function Show-Form {
     }
     function ButtonStartClick {
         $FilePath = "$env:SystemRoot\system32\WindowsPowerShell\v1.0\powershell.exe"
-        $ArgumentList = ("-WindowStyle", "Hidden", "-STA", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$PSScriptRoot\advfirewall-notification.ps1`"")
+        $ArgumentList = (
+            "-WindowStyle", "Hidden",
+            "-STA",
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", "`"$PSScriptRoot\advfirewall-notification.ps1`""
+        )
         $CurrentPID = Get-Content -Path $PSScriptRoot\advfirewall-notification.pid -First 1 -Verbose
         if (Get-Process -Id $CurrentPID) {
             Stop-Process -Id $CurrentPID -Verbose
@@ -233,7 +246,8 @@ if ($args) {
     if ($Arguments.Contains("advfirewall:stop")) {
         $Id = ($Arguments -split "=")[-1]
         Stop-Process -Id $Id -Verbose
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Advanced Firewall Notifications are now disabled.") `
+        Show-Balloon -TipTitle "Windows Firewall" `
+                     -TipText ($Messages."Advanced Firewall Notifications are now disabled.") `
                      -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:settings")) {
         Show-Form
@@ -254,7 +268,8 @@ if ($args) {
         }
         $Settings | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
 
-        Show-Balloon -TipTitle "Windows Firewall" -TipText ("Notifications for {0} are now hidden." -f $Hidden) `
+        Show-Balloon -TipTitle "Windows Firewall" `
+                      -TipText ($Messages."Notifications for {0} are now hidden." -f $Hidden) `
                      -TipIcon Info -Icon "$env:SystemRoot\system32\FirewallControlPanel.dll"
     } elseif ($Arguments.Contains("advfirewall:allow")) {
         $Arguments = ($Arguments -split "=")
@@ -263,14 +278,16 @@ if ($args) {
         if ($Event[2]) {
             $Service = $Event[2] -replace "`"", ""
         } else {
-            $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7]  -replace "`"", "")
+            $Application =  Convert-DevicePathToDriveLetter -Path ($Event[7] -replace "`"", "")
         }
 
-        # Todo: Get correct Direction
-        $Direction = "out"
-
+        $Direction = @{
+            "%%14593" = "out"
+            "%%14592" = "in"
+        }
+        
         if (-not $Service) {
-            & powershell -File "$PSScriptRoot\advfirewall-add-rule.ps1" $Direction $Application
+            & powershell -File "$PSScriptRoot\advfirewall-add-rule.ps1" $Direction.Item(($Event[4] -replace "`"", "")) $Application
         }
     }
 } else {

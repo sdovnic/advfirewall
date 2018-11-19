@@ -14,4 +14,10 @@
     "Windows Firewall Notification Settings" = "Windows Firewall Notification Settings"
     "Notifications" = "Notifications"
     "Close" = "Close"
+    "Select Services to unhide" = "Select Services to unhide"
+    "Select Applications to unhide" = "Select Applications to unhide"
+    "Advanced Firewall Notifications are now disabled." = "Advanced Firewall Notifications are now disabled."
+    "Notifications for {0} are now hidden." = "Notifications for {0} are now hidden."
+    "No Services hidden." = "No Services hidden."
+    "No Applications hidden." = "No Applications hidden."
 }
