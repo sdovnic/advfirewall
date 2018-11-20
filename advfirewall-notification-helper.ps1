@@ -258,6 +258,7 @@ if ($args) {
         if ($Event[2]) {
             $Hidden = $Event[2] -replace "`"", ""
             if (-not $Settings.Hidden.Services.Contains($Hidden)) {
+                # Todo: Split Services and add if not exist
                 $Settings.Hidden.Services.Add($Hidden)
             }
         } else {

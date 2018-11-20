@@ -17,7 +17,7 @@
     "Select Services to unhide" = "W$([char]0x00E4)hle Dienste die nicht mehr ausgeblendet sein sollen"
     "Select Applications to unhide" = "W$([char]0x00E4)hle Anwendungen die nicht mehr ausgeblendet sein sollen"
     "Advanced Firewall Notifications are now disabled." = "Advanced Firewall Benachrichtigungen sind jetzt ausgeschaltet."
-    "Notifications for {0} are now hidden." = "Benachrichtigungen f$([char]0x00FC)r {0} werden jetzt nicht mehr angezeigt."
+    "Notifications for {0} are now hidden." = "Benachrichtigungen f$([char]0x00FC)r `{0}` werden jetzt nicht mehr angezeigt."
     "No Services hidden." = "Keine Dienste ausgeblendet."
     "No Applications hidden." = "Keine Anwendungen ausgeblendet."
 }
