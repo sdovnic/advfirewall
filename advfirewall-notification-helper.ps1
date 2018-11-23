@@ -195,11 +195,12 @@ function Show-Form {
     }
     function ButtonAudioClick {
         if ($ComboBoxAudio.SelectedItem) {
-            Show-MessageBox -Caption $Messages."Set to" -Text $ComboBoxAudio.SelectedItem -Buttons OK -Icon Information
             $Settings.Audio = $ComboBoxAudio.SelectedItem
             $Settings | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
+            Show-MessageBox -Caption $Messages."Set to" -Text $ComboBoxAudio.SelectedItem -Buttons OK -Icon Information
         } else {
             $Settings.Audio = ""
+            $Settings | Export-Clixml -Path $PSScriptRoot\advfirewall-notification-settings.xml -Verbose
             Show-MessageBox -Caption $Messages."Set to" -Text $Messages."Silent" -Buttons OK -Icon Information
         }
     }
