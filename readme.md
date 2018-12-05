@@ -10,10 +10,14 @@ Easy adding of new Rules for your Applications Incoming and Outgoing Traffic. Wi
 
 Einfaches Hinzufügen neuer Regeln für den Eingehenden und Ausgehenden Datenverkehr Ihrer Anwendungen. Ereignisse werden in eine einfache Datei gespeichert. Sie finden die Protokolldateien in Ihrem Skript-Verzeichnis. Sie können sogar Ihre Benutzerdefinierten Firewall-Regeln wiederherstellen wenn sie das Protokoll der Regeln als Kommando-Skript ausführen. Von Ihrem Startmenü können Sie die Firewall pausieren und die erfassten Firewall Ereignisse ansehen.
 
+Get a Notification when an Application or Service is blocked. You are able to hide Notifications for selected Services and Applications. There is an Settingsmenu where you can unhide hidden Notifications and set the Audio of the Notification, even to Silent.
+
+Erhalten Sie Benachrichtigungen wenn eine Anwendung oder ein Dienst geblockt wurde. Sie können auch Benachrichtigungen ausblenden für ausgewählte Dienste und Anwendungen. Es gibt ein Einstellungsmenü in dem Sie die ausgeblendeten Benachrichtigungen wieder einblenden lassen können, auch kann der Ton für die Benachrichtigungen geändert werden (Auch kein Ton).
+
 ## Requirements / Vorraussetzungen
 
 * Windows Operating System
-* Elevated Command Prompt (Only for the Event Logger / Nur für die Ereignisprotokollierung)
+* Elevated Command Prompt (Only for the Event Logger and Notification installation / Nur für die Ereignisprotokollierung und Benachrichtigungen installation)
 
 ## Supported Operating Systems / Unterstützte Betriebssysteme
 
