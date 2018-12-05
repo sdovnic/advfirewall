@@ -17,7 +17,7 @@ Erhalten Sie Benachrichtigungen wenn eine Anwendung oder ein Dienst geblockt wur
 ## Requirements / Vorraussetzungen
 
 * Windows Operating System
-* Elevated Command Prompt (Only for the Event Logger and Notification installation / Nur für die Ereignisprotokollierung und Benachrichtigungen installation)
+* Elevated Command Prompt (Only for the Event Logger and Notification installation / Nur für die Ereignisprotokollierung und Benachrichtigungen Installation)
 
 ## Supported Operating Systems / Unterstützte Betriebssysteme
 
